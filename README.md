@@ -1,0 +1,3 @@
+# NotCord
+
+Not Discord

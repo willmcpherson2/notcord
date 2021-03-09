@@ -14,6 +14,7 @@ yarn --version
 ## Installation
 A first time installation is needed every single time you pull from the git. This is because others may have added new dependancies or made changes to the node_modules folder which is rightly kept out of the git. This is documented in the `package.json` and the `package-lock.json` files. To install any changes, run the following command:
 ```bash
+cd app
 yarn
 ```
 The `yarn` command is the same as `npm install` in terms of functionality, and actually has the same command (`yarn install`). Running the command makes the package-lock.json file irrelavant, and creates a new yarn.lock file.

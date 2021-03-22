@@ -1,70 +1,40 @@
-# Getting Started with Create React App
+# NotCord
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![GitHub issues](https://img.shields.io/github/issues/willmcpherson2/notcord) ![GitHub top language](https://img.shields.io/github/languages/top/willmcpherson2/notcord)
 
-## Available Scripts
+NotCord is a audio and text chat, that can be compared to similar programs such as Discord and Teamspeak. It is created with the intent of being the Capstone Project for RMIT University.
 
-In the project directory, you can run:
+## Pre-Installtion
+The project is constructed using [Yarn](https://classic.yarnpkg.com/en/docs/install/#windows-stable). Yarn is a package manager like npm but is much less prone to the issues that npm suffers. Please install it prior to using this sofware. While not 100% essential, any bugs with the use of npm will not be accepted.
+You can check to see if yarn is correctly installed:
+```bash
+yarn --version
+```
 
-### `npm start`
+## Installation
+A first time installation is needed every single time you pull from the git. This is because others may have added new dependancies or made changes to the node_modules folder which is rightly kept out of the git. This is documented in the `package.json` and the `package-lock.json` files. To install any changes, run the following command:
+```bash
+cd app
+yarn
+```
+The `yarn` command is the same as `npm install` in terms of functionality, and actually has the same command (`yarn install`). Running the command makes the package-lock.json file irrelavant, and creates a new yarn.lock file.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+If there is no new depenancies then the yarn command should be relatively quick and just skip through things. A full reinstall of the node modules may take up to 1 minute to gather using this command.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Running the Software
+To run the Front-End React is extremely easy. A simple command and the program will open at `localhost:3000`. Alternatives to this IP address are: `127.0.0.1:3000` or typing the full URL `http://localhost:3000/`. Keep in mind to never use ***https*** as there is no SSL on the server. 
 
-### `npm test`
+To start the server run:
+```bash
+yarn start
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Testing
+Testing is essential within the project, and as thus, testing will be completed throughout the entire project. We aim to have 100% testing coverage. Please use the coverage badge at the top to see the coverage. This is readjusted every time a new push to the branch is set. 
 
-### `npm run build`
+Testing React.js:
+```bash
+yarn test
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+*Note: Testing badge has not been added yet, will eventually be done once testing commences*

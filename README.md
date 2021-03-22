@@ -8,25 +8,19 @@ The top-level directory is the Rust project (server).
 
 The app/ directory is the React project (frontend).
 
-The React app is the default created via `npx create-react-app app`.
-
 ## Building
 
-To build this you'll need to install npm and rustup:
+To build this you'll need to install yarn and rustup:
 
-https://www.npmjs.com/get-npm
+https://classic.yarnpkg.com/en/docs/install
 
 https://rustup.rs
-
-Then switch to the nightly toolchain:
-
-    rustup default nightly
 
 Then you can build and run everything:
 
     cd app
-    npm install
-    npm run build
+    yarn install
+    yarn build
     cd ..
     cargo run
 
@@ -76,5 +70,5 @@ You'll notice we've allowed the entire app/ directory:
     !app
     !app/**
 
-This means we're using the default .gitignore that was created by
-create-react-app, located at app/.gitignore
+This means we're using the .gitignore in the app directory *for that
+directory*.

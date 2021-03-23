@@ -10,7 +10,7 @@ function App() {
       <Container fluid className="nopadding">
         <Row>
           <Col md="auto"><Sidebar></Sidebar></Col>
-          <Col>Goodbye</Col>
+          <Col>Column 2</Col>
         </Row>
       </Container>       
   );

@@ -1,13 +1,18 @@
 import logo from './logo.svg';
 import './App.css';
-import Button from 'react-bootstrap/Button';
+import {Button, Container, Row, Col} from 'react-bootstrap';
+import Sidebar from './Components/Sidebar/Sidebar'
+
 
 function App() {
+  //Displays the main page with the sidebar
   return (
-    <div className="App">
-      <h1>Welcome to NotCord</h1>
-      <Button>Bootstrap Button</Button>
-    </div>
+      <Container fluid className="nopadding">
+        <Row>
+          <Col md="auto"><Sidebar></Sidebar></Col>
+          <Col>Goodbye</Col>
+        </Row>
+      </Container>       
   );
 }
 

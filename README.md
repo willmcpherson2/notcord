@@ -10,11 +10,13 @@ The app/ directory is the React project (frontend).
 
 ## Building
 
-To build this you'll need to install yarn and rustup:
+To build this you'll need to install yarn, rustup and sqlite3:
 
 https://classic.yarnpkg.com/en/docs/install
 
 https://rustup.rs
+
+https://sqlite.org/download.html
 
 Then you can build and run everything:
 
@@ -27,6 +29,21 @@ Then you can build and run everything:
 This will serve the app locally and you should be able to follow the link that
 Rocket printed to your terminal. It will probably be something like
 localhost:8000
+
+## Database
+
+The server creates a database file called `database.db`, or uses the existing
+one. This means the database is persistent and you can create your own. You can
+create data manually with the `sqlite3` command:
+
+    sqlite3 database.db
+
+A sqlite interpreter will open and you can execute any command you'd like.
+
+For nicer output, add this to your `~/.sqliterc`:
+
+    .mode column
+    .headers on
 
 ## .gitignore
 

@@ -4,6 +4,7 @@
 !.gitignore
 !README.md
 !Cargo.toml
+!Rocket.toml
 !src
 !src/**
 !app

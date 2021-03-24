@@ -5,16 +5,25 @@ import '../../App.css'
 
 //Sets the encryption that uses bcrypt. The salt rounds can be changed but will be left at 10 for this purpose.
 const bcrypt = require('bcryptjs');
-const saltRounds = 10;
-
 export default class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
       username: '',
-      passwordHash: '12345',
+      passwordHash: '',
       password: ''
     }
+  }
+
+  hashPassword(){
+    const password = this.state.password;
+    let that = this;
+    bcrypt.genSalt(10, function(err, salt) {
+      bcrypt.hash(password, salt, function(err, hash) {
+          // Store hash in your database
+          that.setState({ passwordHash: hash})
+      });
+  });
   }
 
 
@@ -31,6 +40,9 @@ export default class Login extends Component {
         password_hash: passwordHash
       })
     })
+
+    this.hashPassword();
+    
   }
 
 
@@ -40,6 +52,13 @@ export default class Login extends Component {
 
   handlePassChange = (e) => {
     this.setState({ password: e.target.value})
+  }
+
+  handleClick = () => {
+    this.hashPassword();
+    bcrypt.compare("1234", this.state.passwordHash, function(err, res) {
+      console.log(res)
+  });
   }
 
 
@@ -62,10 +81,8 @@ export default class Login extends Component {
               <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
             </Form.Group>
             <Col className="offset-3"><Button varient="primary" type="submit">Login</Button></Col>
-            
           </Form>
         </Row>
-
       </Container>
     );
   }

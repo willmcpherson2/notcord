@@ -17,7 +17,7 @@ struct Database(rusqlite::Connection);
 #[derive(Deserialize)]
 struct Signup {
     username: String,
-    password_hash: i64,
+    password_hash: String,
 }
 
 #[get("/")]
@@ -45,7 +45,7 @@ fn init_database_file() {
     rusqlite::Connection::open("database.db")
         .expect("bug: failed to open/create database file")
         .execute(
-            "CREATE TABLE IF NOT EXISTS User (username TEXT NOT NULL, password_hash INTEGER)",
+            "CREATE TABLE IF NOT EXISTS User (username TEXT NOT NULL, password_hash TEXT NOT NULL)",
             &[],
         )
         .expect("bug: failed to create sqlite table");

@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import {Button, Container, Row, Col} from 'react-bootstrap';
 import Sidebar from './Components/Sidebar/Sidebar'
+import Login from './Components/Login/Login'
 
 
 function App() {
@@ -10,7 +11,7 @@ function App() {
       <Container fluid className="nopadding">
         <Row>
           <Col md="auto"><Sidebar></Sidebar></Col>
-          <Col>Column 2</Col>
+          <Col><Login></Login></Col>
         </Row>
       </Container>       
   );

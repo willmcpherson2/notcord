@@ -19,7 +19,7 @@ https://rustup.rs
 Then you can build and run everything:
 
     cd app
-    yarn install
+    yarn
     yarn build
     cd ..
     cargo run

@@ -9,4 +9,6 @@
 !src/**
 !app
 !app/**
+!test
+!test/**
 !rust-toolchain

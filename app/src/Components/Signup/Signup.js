@@ -15,8 +15,8 @@ export default class Login extends Component {
     }
   }
 
-  hashPassword() {
-    const password = this.state.password;
+  //This is the password hash. This is done 100% on the client side. Password should probably be protected though.
+  hashPassword(password) {
     let that = this;
     bcrypt.genSalt(10, function (err, salt) {
       bcrypt.hash(password, salt, function (err, hash) {
@@ -28,6 +28,8 @@ export default class Login extends Component {
 
 
   handleSubmit = (e) => {
+    //This line stops the page from refreshing, which would reload the entire application.
+    e.preventDefault();
     const { username, passwordHash } = this.state;
     fetch('http://localhost:8000/signup', {
       method: 'POST',
@@ -40,8 +42,12 @@ export default class Login extends Component {
         password_hash: passwordHash
       })
     })
+    //This part gets the response code, and then logs that code.
+    .then(res =>{
+      console.log(res)
+    })
 
-    this.hashPassword();
+    this.hashPassword(this.state.password);
 
   }
 
@@ -61,9 +67,8 @@ export default class Login extends Component {
     });
   }
 
-  register = () => {
-    this.props.setView("signup")
-    console.log("SET VIEW TO")
+  login = () => {
+    this.props.setView("login")
   }
 
 
@@ -75,10 +80,10 @@ export default class Login extends Component {
           <img src={Logo} alt="NotCord Logo"></img>
         </Row>
         <Row className="justify-content-md-center">
-          <h2>NotCord Login</h2>
+          <h2>Register to NotCord</h2>
         </Row>
         <Row className="justify-content-md-center">
-          <Form.Text className="text-muted">Don't have an account? <button onClick={this.register}>Register Here</button></Form.Text><br></br>
+          <Form.Text className="text-muted">Already have an account? <button onClick={this.login}>Login Here</button></Form.Text><br></br>
         </Row>
         <Row className="justify-content-md-center">
           <Form onSubmit={this.handleSubmit}>
@@ -88,11 +93,12 @@ export default class Login extends Component {
             <Form.Group controlId="formPassword">
               <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
             </Form.Group>
-            <Col className="offset-3"><Button varient="primary" type="submit">Login</Button></Col>
+            <Col className="justify-content-md-center"><Button varient="primary" type="submit">Register</Button></Col>
           </Form>
 
         </Row>
         <p>The following lines are for testing and need to be removed.</p>
+        <Button onClick={this.handleClick}>SEND TEST</Button>
         <Button onClick={this.handleClick}>SEND TEST</Button>
         <p>Username: {this.state.username}</p>
         <p>Password: {this.state.password}</p>

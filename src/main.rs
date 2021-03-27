@@ -76,6 +76,7 @@ fn main() {
 
     rocket::ignite()
         .attach(Database::fairing())
+        .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
         .mount("/", routes![index, files, signup, login])
         .launch();
 }

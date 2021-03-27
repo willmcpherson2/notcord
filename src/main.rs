@@ -9,7 +9,7 @@ use rocket::http::Cookies;
 use rocket::response::NamedFile;
 use rocket_contrib::databases::rusqlite;
 use rocket_contrib::json::Json;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -20,6 +20,12 @@ struct Database(rusqlite::Connection);
 struct Login {
     username: String,
     password_hash: i64,
+}
+
+#[derive(Serialize)]
+enum ErrorCode {
+    Ok,
+    UserAlreadyExists,
 }
 
 #[get("/")]
@@ -33,32 +39,40 @@ fn files(file: PathBuf) -> Option<NamedFile> {
 }
 
 #[post("/signup", data = "<login>")]
-fn signup(login: Json<Login>, database: Database) {
-    // TODO: prevent duplicate usernames
-    database
-        .execute(
-            "INSERT INTO User (username, password_hash) VALUES (?1, ?2)",
-            &[&login.username, &login.password_hash],
-        )
-        .expect("bug: failed to insert user");
+fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
+    if get_login_from_database(&login, &database).is_some() {
+        Json(ErrorCode::UserAlreadyExists)
+    } else {
+        database
+            .execute(
+                "INSERT INTO User (username, password_hash) VALUES (?1, ?2)",
+                &[&login.username, &login.password_hash],
+            )
+            .expect("bug: failed to insert user");
+        Json(ErrorCode::Ok)
+    }
 }
 
 #[post("/login", data = "<login>")]
 fn login(login: Json<Login>, database: Database, mut cookies: Cookies) {
-    let query = database.query_row(
-        "SELECT * FROM User WHERE username=?1 AND password_hash=?2",
-        &[&login.username, &login.password_hash],
-        |row| Login {
-            username: row.get(0),
-            password_hash: row.get(1),
-        },
-    );
-
-    if let Ok(login) = query {
+    if let Some(login) = get_login_from_database(&login, &database) {
         cookies.add_private(Cookie::new("username", login.username));
     } else {
         // TODO: return error indicating login failed
     }
+}
+
+fn get_login_from_database(login: &Login, database: &Database) -> Option<Login> {
+    database
+        .query_row(
+            "SELECT * FROM User WHERE username=?1 AND password_hash=?2",
+            &[&login.username, &login.password_hash],
+            |row| Login {
+                username: row.get(0),
+                password_hash: row.get(1),
+            },
+        )
+        .ok()
 }
 
 fn init_database_file() {

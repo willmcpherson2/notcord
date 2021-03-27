@@ -26,6 +26,7 @@ struct Login {
 enum ErrorCode {
     Ok,
     UserAlreadyExists,
+    UserDoesNotExist,
 }
 
 #[get("/")]
@@ -54,11 +55,12 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
 }
 
 #[post("/login", data = "<login>")]
-fn login(login: Json<Login>, database: Database, mut cookies: Cookies) {
+fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
     if let Some(login) = get_login_from_database(&login, &database) {
         cookies.add_private(Cookie::new("username", login.username));
+        Json(ErrorCode::Ok)
     } else {
-        // TODO: return error indicating login failed
+        Json(ErrorCode::UserDoesNotExist)
     }
 }
 

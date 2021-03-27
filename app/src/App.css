@@ -12,3 +12,10 @@
 .Login {
   margin-top: 25vh;
 }
+
+.Login .text-muted button {
+  color: rgb(0, 119, 255);
+  cursor: pointer;
+  background-color: white;
+  border: none;
+}

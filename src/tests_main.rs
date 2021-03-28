@@ -34,7 +34,7 @@ fn signup() {
         .body(
             "{
             \"username\":\"test_user01\",   
-            \"password_hash\":12345678
+            \"password_hash\":\"test_hash01\"
             }",
         )
         .dispatch();

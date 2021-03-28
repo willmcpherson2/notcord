@@ -41,7 +41,14 @@ fn files(file: PathBuf) -> Option<NamedFile> {
 
 #[post("/signup", data = "<login>")]
 fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
-    if get_login_from_database(&login, &database).is_some() {
+    let mut statement = database
+        .prepare("SELECT * FROM User WHERE username=?1")
+        .expect("bug: failed to prepare statement");
+    let user_exists = statement
+        .exists(&[&login.username])
+        .expect("bug: failed to query database");
+
+    if user_exists {
         Json(ErrorCode::UserAlreadyExists)
     } else {
         database
@@ -56,25 +63,19 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
 
 #[post("/login", data = "<login>")]
 fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
-    if let Some(login) = get_login_from_database(&login, &database) {
-        cookies.add_private(Cookie::new("username", login.username));
+    let mut statement = database
+        .prepare("SELECT * FROM User WHERE username=?1 and password_hash=?2")
+        .expect("bug: failed to prepare statement");
+    let login_exists = statement
+        .exists(&[&login.username, &login.password_hash])
+        .expect("bug: failed to query database");
+
+    if login_exists {
+        cookies.add_private(Cookie::new("username", login.username.clone()));
         Json(ErrorCode::Ok)
     } else {
         Json(ErrorCode::UserDoesNotExist)
     }
-}
-
-fn get_login_from_database(login: &Login, database: &Database) -> Option<Login> {
-    database
-        .query_row(
-            "SELECT * FROM User WHERE username=?1 AND password_hash=?2",
-            &[&login.username, &login.password_hash],
-            |row| Login {
-                username: row.get(0),
-                password_hash: row.get(1),
-            },
-        )
-        .ok()
 }
 
 fn init_database_file() {
@@ -99,3 +100,4 @@ fn main() {
 
 #[cfg(test)]
 mod tests_main;
+

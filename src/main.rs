@@ -96,3 +96,6 @@ fn main() {
         .mount("/", routes![index, files, signup, login])
         .launch();
 }
+
+#[cfg(test)]
+mod tests_main;

@@ -4,8 +4,10 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
 
+use rocket::http::ContentType;
 use rocket::http::Cookie;
 use rocket::http::Cookies;
+use rocket::response::Content;
 use rocket::response::NamedFile;
 use rocket::Data;
 use rocket_contrib::databases::rusqlite;
@@ -108,6 +110,20 @@ fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<Error
     }
 }
 
+#[post("/get_avatar", data = "<username>")]
+fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
+    let username: &str = &username;
+
+    let mut statement = database
+        .prepare("SELECT avatar FROM User WHERE username=?1")
+        .unwrap();
+    let avatar = statement.query_row(&[&username], |row| row.get(0));
+
+    let avatar = avatar.unwrap_or_else(|_| DEFAULT_AVATAR.to_vec());
+
+    Content(ContentType::PNG, avatar)
+}
+
 fn init_database_file() {
     rusqlite::Connection::open("database.db")
         .expect("bug: failed to open/create database file")
@@ -128,7 +144,10 @@ fn main() {
     rocket::ignite()
         .attach(Database::fairing())
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
-        .mount("/", routes![index, files, signup, login, set_avatar])
+        .mount(
+            "/",
+            routes![index, files, signup, login, set_avatar, get_avatar],
+        )
         .launch();
 }
 

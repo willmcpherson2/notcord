@@ -7,10 +7,12 @@ extern crate rocket_contrib;
 use rocket::http::Cookie;
 use rocket::http::Cookies;
 use rocket::response::NamedFile;
+use rocket::Data;
 use rocket_contrib::databases::rusqlite;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 use std::io;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 #[database("database")]
@@ -27,7 +29,10 @@ enum ErrorCode {
     Ok,
     UserAlreadyExists,
     UserDoesNotExist,
+    NotLoggedIn,
 }
+
+static DEFAULT_AVATAR: &[u8; 1597] = include_bytes!("../default-avatar.png");
 
 #[get("/")]
 fn index() -> io::Result<NamedFile> {
@@ -53,8 +58,12 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
     } else {
         database
             .execute(
-                "INSERT INTO User (username, password_hash) VALUES (?1, ?2)",
-                &[&login.username, &login.password_hash],
+                "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+                &[
+                    &login.username,
+                    &login.password_hash,
+                    &DEFAULT_AVATAR.to_vec(),
+                ],
             )
             .expect("bug: failed to insert user");
         Json(ErrorCode::Ok)
@@ -78,11 +87,36 @@ fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<E
     }
 }
 
+#[post("/set_avatar", format = "image/png", data = "<png>")]
+fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
+    let mut buf = Vec::new();
+    png.open()
+        .read_to_end(&mut buf)
+        .expect("bug: failed to read PNG");
+
+    if let Some(cookie) = cookies.get_private("username") {
+        database
+            .execute(
+                "UPDATE User SET avatar=?1 WHERE username=?2",
+                &[&buf, &cookie.value()],
+            )
+            .expect("bug: failed to insert avatar");
+
+        Json(ErrorCode::Ok)
+    } else {
+        Json(ErrorCode::NotLoggedIn)
+    }
+}
+
 fn init_database_file() {
     rusqlite::Connection::open("database.db")
         .expect("bug: failed to open/create database file")
         .execute(
-            "CREATE TABLE IF NOT EXISTS User (username TEXT NOT NULL, password_hash TEXT NOT NULL)",
+            "CREATE TABLE IF NOT EXISTS User (
+                username TEXT NOT NULL,
+                password_hash TEXT NOT NULL,
+                avatar BLOB NOT NULL
+            )",
             &[],
         )
         .expect("bug: failed to create sqlite table");
@@ -94,10 +128,9 @@ fn main() {
     rocket::ignite()
         .attach(Database::fairing())
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
-        .mount("/", routes![index, files, signup, login])
+        .mount("/", routes![index, files, signup, login, set_avatar])
         .launch();
 }
 
 #[cfg(test)]
 mod tests_main;
-

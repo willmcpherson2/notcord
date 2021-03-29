@@ -2,31 +2,14 @@ use super::*;
 use rocket::http::ContentType;
 use rocket::local::Client;
 
-fn set_up_test_db() -> rusqlite::Connection {
-    let test_db = rusqlite::Connection::open("database.db")
-        .expect("bug: failed to open/create database file");
-    test_db
-        .execute(
-            "CREATE TABLE IF NOT EXISTS User (username TEXT NOT NULL, password_hash INTEGER)",
-            &[],
-        )
-        .expect("bug: failed to create sqlite table");
-    test_db
-}
-
-fn set_up_test_server() -> rocket::Rocket {
-    rocket::ignite()
-        .attach(Database::fairing())
-        .mount("/", routes![index, files, signup, login])
-}
-
-
-
 //sign up - new user;
 #[test]
 fn signup_new_user() {
-    let test_db = set_up_test_db();
-    let client = Client::new(set_up_test_server()).expect("Problem Creating client");
+    init_database_file();
+    let rocket_instance = init_rocket();
+    let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+
     test_db
         .execute("BEGIN TRANSACTION", &[])
         .expect("Unable to start TRANSACTION");
@@ -40,7 +23,8 @@ fn signup_new_user() {
             }",
         )
         .dispatch();
-    let stmt = &test_db
+
+    let mut stmt = test_db
         .prepare("SELECT username FROM User WHERE (username = 'test_user01')")
         .expect("Problem parsing sql");
     match stmt.exists(&[]) {
@@ -52,20 +36,20 @@ fn signup_new_user() {
         }
         Err(error) => panic!("Problem creating client: {:?}", error),
     };
-    rusqlite::Connection::close(test_db);
 }
 
-//sign up - existing user
+/*sign up - existing user
 #[test]
 fn signup_existing_user() {
-    let test_db = set_up_test_db();
-    let client = Client::new(set_up_test_server()).expect("Problem Creating client");
+    init_database_file();
+    let rocket_instance = init_rocket();
+    let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+
     test_db
-        .execute("BEGIN TRANSACTION", &[])
+        .execute_batch("BEGIN TRANSACTION
+            INSERT INTO User (username, password_hash) VALUES (\"test_user02\", \"test_hash02\")")
         .expect("Unable to start TRANSACTION");
-    test_db
-        .execute("INSERT INTO User (username, password_hash) VALUES (\"test_user02\", \"test_hash02\")", &[])
-        .expect("Unable toinput test data");
     let message = client
         .post("/signup")
         .header(ContentType::JSON)
@@ -81,3 +65,4 @@ fn signup_existing_user() {
         .execute("ROLLBACK", &[])
         .expect("Bug:Unable to ROLLBACK TRANSACTION");
 }
+*/

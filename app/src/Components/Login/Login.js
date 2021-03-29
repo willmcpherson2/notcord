@@ -92,11 +92,6 @@ export default class Login extends Component {
           </Form>
 
         </Row>
-        <p>The following lines are for testing and need to be removed.</p>
-        <Button onClick={this.handleClick}>SEND TEST</Button>
-        <p>Username: {this.state.username}</p>
-        <p>Password: {this.state.password}</p>
-        <p>Hash: {this.state.passwordHash}</p>
       </Container>
     );
   }

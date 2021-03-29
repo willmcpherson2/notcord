@@ -12,3 +12,4 @@
 !tests
 !tests/**
 !rust-toolchain
+!default-avatar.png

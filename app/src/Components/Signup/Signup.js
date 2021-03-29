@@ -10,27 +10,31 @@ export default class Login extends Component {
     super(props);
     this.state = {
       username: '',
-      passwordHash: '',
       password: ''
     }
   }
 
   //This is the password hash. This is done 100% on the client side. Password should probably be protected though.
-  hashPassword(password) {
-    let that = this;
+  hashPassword = (password) => {
     bcrypt.genSalt(10, function (err, salt) {
       bcrypt.hash(password, salt, function (err, hash) {
         // Store hash in your database
-        that.setState({ passwordHash: hash })
+        console.log("hash " + hash)
+        return hash
       });
     });
   }
 
 
-  handleSubmit = (e) => {
+  handleSubmit = async (e) => {
     //This line stops the page from refreshing, which would reload the entire application.
     e.preventDefault();
-    const { username, passwordHash } = this.state;
+    const { username, password } = this.state;
+
+    //This hashes the password to then send
+    let passwordHash = await this.hashPassword(password);
+
+    console.log(passwordHash + " " + username + " " + password)
     fetch('http://localhost:8000/signup', {
       method: 'POST',
       headers: {
@@ -42,12 +46,12 @@ export default class Login extends Component {
         password_hash: passwordHash
       })
     })
-    //This part gets the response code, and then logs that code.
-    .then(res =>{
-      console.log(res)
-    })
+      //This part gets the response code, and then logs that code.
+      .then(res => {
+        console.log(res)
+      })
 
-    this.hashPassword(this.state.password);
+
 
   }
 
@@ -58,13 +62,6 @@ export default class Login extends Component {
 
   handlePassChange = (e) => {
     this.setState({ password: e.target.value })
-  }
-
-  handleClick = () => {
-    this.hashPassword();
-    bcrypt.compare("1234", this.state.passwordHash, function (err, res) {
-      console.log(res)
-    });
   }
 
   login = () => {
@@ -97,12 +94,6 @@ export default class Login extends Component {
           </Form>
 
         </Row>
-        <p>The following lines are for testing and need to be removed.</p>
-        <Button onClick={this.handleClick}>SEND TEST</Button>
-        <Button onClick={this.handleClick}>SEND TEST</Button>
-        <p>Username: {this.state.username}</p>
-        <p>Password: {this.state.password}</p>
-        <p>Hash: {this.state.passwordHash}</p>
       </Container>
     );
   }

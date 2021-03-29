@@ -47,9 +47,11 @@ fn signup_existing_user() {
     let client = Client::new(rocket_instance).expect("Problem Creating client");
 
     test_db
-        .execute_batch("BEGIN TRANSACTION
-            INSERT INTO User (username, password_hash) VALUES (\"test_user02\", \"test_hash02\")")
+        .execute("BEGIN TRANSACTION", &[])
         .expect("Unable to start TRANSACTION");
+    test_db
+        .execute("INSERT INTO User (username, password_hash) VALUES (\"test_user02\", \"test_hash02\");", &[])
+        .expect("Unable to insert new users");
     let message = client
         .post("/signup")
         .header(ContentType::JSON)
@@ -59,8 +61,10 @@ fn signup_existing_user() {
             \"password_hash\":\"test_hash02\"
             }",
         );
-    let response = message.dispatch();
-    println!("{:?}", response);
+    let mut response = message.dispatch();
+    println!("{:?}", response.take_body().unwrap().into_string());
+    println!("{:?}", ErrorCode::UserAlreadyExists);
+    //assert_eq!(message.into_inner(), ErrorCode::UserAlreadyExists);
     test_db
         .execute("ROLLBACK", &[])
         .expect("Bug:Unable to ROLLBACK TRANSACTION");

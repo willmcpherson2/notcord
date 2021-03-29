@@ -2,6 +2,7 @@ use super::*;
 use rocket::http::ContentType;
 use rocket::local::Client;
 
+
 //sign up - new user;
 #[test]
 fn signup_new_user() {
@@ -9,7 +10,6 @@ fn signup_new_user() {
     let rocket_instance = init_rocket();
     let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
     let client = Client::new(rocket_instance).expect("Problem Creating client");
-
     test_db
         .execute("BEGIN TRANSACTION", &[])
         .expect("Unable to start TRANSACTION");
@@ -23,10 +23,10 @@ fn signup_new_user() {
             }",
         )
         .dispatch();
-
     let mut stmt = test_db
         .prepare("SELECT username FROM User WHERE (username = 'test_user01')")
         .expect("Problem parsing sql");
+    println!("{:?}", stmt.exists(&[]),);
     match stmt.exists(&[]) {
         Ok(exists) => {
             test_db

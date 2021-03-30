@@ -46,7 +46,7 @@ fn signup_existing_user() {
     let client = Client::new(rocket_instance).expect("Problem Creating client");
 
     test_db
-        .execute("BEGIN TRANSACTION", &[])
+        .execute("BEGIN IMMEDIATE", &[])
         .expect("Unable to start TRANSACTION");
     test_db
         .execute("INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
@@ -57,7 +57,7 @@ fn signup_existing_user() {
         .header(ContentType::JSON)
         .body(
             "{
-            \"username\":\"test_user03\",   
+            \"username\":\"test_user02\",   
             \"password\":\"test_hash02\"
             }",
         );

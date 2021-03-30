@@ -16,7 +16,6 @@ use serde::{Deserialize, Serialize};
 use std::io;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::fmt;
 
 #[database("database")]
 struct Database(rusqlite::Connection);
@@ -33,26 +32,6 @@ enum ErrorCode {
     UserAlreadyExists,
     UserDoesNotExist,
     NotLoggedIn,
-}
-
-impl fmt::Display for ErrorCode {
-    // This trait requires `fmt` with this exact signature.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ErrorCode::Ok => {
-                write!(f, "Ok")
-            }
-            ErrorCode::UserAlreadyExists => {
-                write!(f, "UserAlreadyExists")
-            }
-            ErrorCode::UserDoesNotExist => {
-                write!(f, "UserDoesNotExist")
-            }
-            ErrorCode::NotLoggedIn => {
-                write!(f, "NotLoggedIn")
-            }
-        }
-    }
 }
 
 static DEFAULT_AVATAR: &[u8; 1597] = include_bytes!("../default-avatar.png");

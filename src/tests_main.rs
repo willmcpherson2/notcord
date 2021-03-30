@@ -64,7 +64,7 @@ fn signup_existing_user() {
     let mut response = message.dispatch();
     //println!("{:?}", response.body_string());
     //println!("{:?}", Some(ErrorCode::UserAlreadyExists.to_string()));
-    assert_eq!(response.body_string(), Some("\"".to_string()+&ErrorCode::UserAlreadyExists.to_string()+"\""));
+    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap()));
     test_db
         .execute("ROLLBACK", &[])
         .expect("Bug:Unable to ROLLBACK TRANSACTION");

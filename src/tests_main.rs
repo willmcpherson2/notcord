@@ -19,7 +19,7 @@ fn signup_new_user() {
         .body(
             "{
             \"username\":\"test_user01\",   
-            \"password_hash\":\"test_hash01\"
+            \"password\":\"test_hash01\"
             }",
         )
         .dispatch();
@@ -38,7 +38,6 @@ fn signup_new_user() {
     };
 }
 
-/*sign up - existing user
 #[test]
 fn signup_existing_user() {
     init_database_file();
@@ -50,23 +49,23 @@ fn signup_existing_user() {
         .execute("BEGIN TRANSACTION", &[])
         .expect("Unable to start TRANSACTION");
     test_db
-        .execute("INSERT INTO User (username, password_hash) VALUES (\"test_user02\", \"test_hash02\");", &[])
-        .expect("Unable to insert new users");
+        .execute("INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+                &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()])
+        .expect("Unable to insert new users"); 
     let message = client
         .post("/signup")
         .header(ContentType::JSON)
         .body(
             "{
-            \"username\":\"test_user02\",   
-            \"password_hash\":\"test_hash02\"
+            \"username\":\"test_user03\",   
+            \"password\":\"test_hash02\"
             }",
         );
     let mut response = message.dispatch();
-    println!("{:?}", response.take_body().unwrap().into_string());
-    println!("{:?}", ErrorCode::UserAlreadyExists);
-    //assert_eq!(message.into_inner(), ErrorCode::UserAlreadyExists);
+    //println!("{:?}", response.body_string());
+    //println!("{:?}", Some(ErrorCode::UserAlreadyExists.to_string()));
+    assert_eq!(response.body_string(), Some("\"".to_string()+&ErrorCode::UserAlreadyExists.to_string()+"\""));
     test_db
         .execute("ROLLBACK", &[])
         .expect("Bug:Unable to ROLLBACK TRANSACTION");
 }
-*/

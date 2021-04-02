@@ -26,7 +26,7 @@ export default class Login extends Component {
       },
       body: JSON.stringify({
         username: username,
-        password_hash: password
+        password: password
       })
     })
       //This part gets the response code, and then logs that code.

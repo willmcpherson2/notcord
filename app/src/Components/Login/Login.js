@@ -23,10 +23,14 @@ export default class Login extends Component {
         },
         body: JSON.stringify({
           username: username,
-          password_hash: password
+          password: password
         })
+      }).then(res => {
+        console.log(res)
+        if (res.status === 200) {
+          this.props.setView("dashboard")
+        }
       })
-    this.props.setView("dashboard")
   }
 
 

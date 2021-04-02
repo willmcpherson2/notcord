@@ -2,29 +2,14 @@ use super::*;
 use rocket::http::ContentType;
 use rocket::local::Client;
 
-fn set_up_test_db() -> rusqlite::Connection {
-    let test_db = rusqlite::Connection::open("database.db")
-        .expect("bug: failed to open/create database file");
-    test_db
-        .execute(
-            "CREATE TABLE IF NOT EXISTS User (username TEXT NOT NULL, password_hash INTEGER)",
-            &[],
-        )
-        .expect("bug: failed to create sqlite table");
-    test_db
-}
 
-fn set_up_test_server() -> rocket::Rocket {
-    rocket::ignite()
-        .attach(Database::fairing())
-        .mount("/", routes![index, files, signup, login])
-}
-
-//sign up;
+//sign up - new user;
 #[test]
-fn signup() {
-    let test_db = set_up_test_db();
-    let client = Client::new(set_up_test_server()).expect("Problem Creating client");
+fn signup_new_user() {
+    init_database_file();
+    let rocket_instance = init_rocket();
+    let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
     test_db
         .execute("BEGIN TRANSACTION", &[])
         .expect("Unable to start TRANSACTION");
@@ -34,7 +19,7 @@ fn signup() {
         .body(
             "{
             \"username\":\"test_user01\",   
-            \"password_hash\":\"test_hash01\"
+            \"password\":\"test_hash01\"
             }",
         )
         .dispatch();
@@ -51,4 +36,36 @@ fn signup() {
         }
         Err(error) => panic!("Problem creating client: {:?}", error),
     };
+}
+
+#[test]
+fn signup_existing_user() {
+    init_database_file();
+    let rocket_instance = init_rocket();
+    let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+
+    test_db
+        .execute("BEGIN IMMEDIATE", &[])
+        .expect("Unable to start TRANSACTION");
+    test_db
+        .execute("INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+                &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()])
+        .expect("Unable to insert new users"); 
+    let message = client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        );
+    let mut response = message.dispatch();
+    //println!("{:?}", response.body_string());
+    //println!("{:?}", Some(ErrorCode::UserAlreadyExists.to_string()));
+    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap()));
+    test_db
+        .execute("ROLLBACK", &[])
+        .expect("Bug:Unable to ROLLBACK TRANSACTION");
 }

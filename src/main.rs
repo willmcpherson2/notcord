@@ -23,7 +23,7 @@ struct Database(rusqlite::Connection);
 #[derive(Deserialize)]
 struct Login {
     username: String,
-    password_hash: String,
+    password: String,
 }
 
 #[derive(Serialize)]
@@ -58,14 +58,12 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
     if user_exists {
         Json(ErrorCode::UserAlreadyExists)
     } else {
+        let password_hash = bcrypt::hash(&login.password, bcrypt::DEFAULT_COST).unwrap();
+
         database
             .execute(
                 "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
-                &[
-                    &login.username,
-                    &login.password_hash,
-                    &DEFAULT_AVATAR.to_vec(),
-                ],
+                &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()]
             )
             .expect("bug: failed to insert user");
         Json(ErrorCode::Ok)
@@ -75,18 +73,18 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
 #[post("/login", data = "<login>")]
 fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
     let mut statement = database
-        .prepare("SELECT * FROM User WHERE username=?1 and password_hash=?2")
-        .expect("bug: failed to prepare statement");
-    let login_exists = statement
-        .exists(&[&login.username, &login.password_hash])
-        .expect("bug: failed to query database");
+        .prepare("SELECT password_hash FROM User WHERE username=?1")
+        .unwrap();
+    let result: Result<String, _> = statement.query_row(&[&login.username], |row| row.get(0));
 
-    if login_exists {
-        cookies.add_private(Cookie::new("username", login.username.clone()));
-        Json(ErrorCode::Ok)
-    } else {
-        Json(ErrorCode::UserDoesNotExist)
+    if let Ok(password_hash) = result {
+        let hash_match = bcrypt::verify(&login.password, &password_hash).unwrap();
+        if hash_match {
+            cookies.add_private(Cookie::new("username", login.username.clone()));
+            return Json(ErrorCode::Ok);
+        }
     }
+    Json(ErrorCode::UserDoesNotExist)
 }
 
 #[post("/set_avatar", format = "image/png", data = "<png>")]
@@ -138,9 +136,7 @@ fn init_database_file() {
         .expect("bug: failed to create sqlite table");
 }
 
-fn main() {
-    init_database_file();
-
+fn init_rocket() -> rocket::Rocket {
     rocket::ignite()
         .attach(Database::fairing())
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
@@ -148,7 +144,11 @@ fn main() {
             "/",
             routes![index, files, signup, login, set_avatar, get_avatar],
         )
-        .launch();
+}
+
+fn main() {
+    init_database_file();
+    init_rocket().launch();
 }
 
 #[cfg(test)]

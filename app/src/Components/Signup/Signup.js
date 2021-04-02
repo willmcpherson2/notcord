@@ -29,7 +29,10 @@ export default class Login extends Component {
         password: password
       })
     })
-      //This part gets the response code, and then logs that code.
+      //This part gets the response JSON body, and then logs that JSON.
+      .then(res =>
+          res.json()
+      )
       .then(res => {
         console.log(res)
       })

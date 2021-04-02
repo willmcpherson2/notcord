@@ -25,9 +25,11 @@ export default class Login extends Component {
           username: username,
           password: password
         })
-      }).then(res => {
+      }).then(res =>
+          res.json()
+      ).then(res => {
         console.log(res)
-        if (res.status === 200) {
+        if (res === "Ok") {
           this.props.setView("dashboard")
         }
       })

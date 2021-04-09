@@ -122,8 +122,8 @@ fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
     Content(ContentType::PNG, avatar)
 }
 
-fn init_database_file() {
-    rusqlite::Connection::open("database.db")
+fn init_database_file(filename: &str) {
+    rusqlite::Connection::open(filename)
         .expect("bug: failed to open/create database file")
         .execute(
             "CREATE TABLE IF NOT EXISTS User (
@@ -147,7 +147,7 @@ fn init_rocket() -> rocket::Rocket {
 }
 
 fn main() {
-    init_database_file();
+    init_database_file("database.db");
     init_rocket().launch();
 }
 

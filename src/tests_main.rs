@@ -6,17 +6,7 @@ use std::collections::HashMap;
 
 //set up rocket & empty test database
 fn setup_test_rocket() -> rocket::Rocket {
-    rusqlite::Connection::open("test_database.db")
-        .expect("bug: failed to open/create database file")
-        .execute(
-            "CREATE TABLE IF NOT EXISTS User (
-                username TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
-                avatar BLOB NOT NULL
-            )",
-            &[],
-        )
-        .expect("bug: failed to create sqlite table");
+    init_database_file("test_database.db");
 
     let mut database_config = HashMap::new();
     let mut databases = HashMap::new();

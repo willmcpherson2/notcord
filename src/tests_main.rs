@@ -1,18 +1,49 @@
 use super::*;
 use rocket::http::ContentType;
 use rocket::local::Client;
+use rocket::config::{Config, Environment, Value};
+use std::collections::HashMap;
 
+//set up rocket & empty test database
+fn setup_test_rocket() -> rocket::Rocket {
+    rusqlite::Connection::open("test_database.db")
+        .expect("bug: failed to open/create database file")
+        .execute(
+            "CREATE TABLE IF NOT EXISTS User (
+                username TEXT NOT NULL,
+                password_hash TEXT NOT NULL,
+                avatar BLOB NOT NULL
+            )",
+            &[],
+        )
+        .expect("bug: failed to create sqlite table");
+
+    let mut database_config = HashMap::new();
+    let mut databases = HashMap::new();
+
+    database_config.insert("url", Value::from("test_database.db"));
+    databases.insert("database", Value::from(database_config));
+    
+    let config = Config::build(Environment::Development)
+        .extra("databases", databases)
+        .finalize()
+        .unwrap();
+
+    rocket::custom(config)
+        .attach(Database::fairing())
+        .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
+        .mount(
+            "/",
+            routes![index, files, signup, login, set_avatar, get_avatar],
+        )
+}
 
 //sign up - new user;
 #[test]
 fn signup_new_user() {
-    init_database_file();
-    let rocket_instance = init_rocket();
+    let rocket_instance = setup_test_rocket();
     let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
     let client = Client::new(rocket_instance).expect("Problem Creating client");
-    test_db
-        .execute("BEGIN TRANSACTION", &[])
-        .expect("Unable to start TRANSACTION");
     client
         .post("/signup")
         .header(ContentType::JSON)
@@ -29,9 +60,6 @@ fn signup_new_user() {
     println!("{:?}", stmt.exists(&[]),);
     match stmt.exists(&[]) {
         Ok(exists) => {
-            test_db
-                .execute("ROLLBACK", &[])
-                .expect("Bug:Unable to ROLLBACK TRANSACTION");
             assert!(exists);
         }
         Err(error) => panic!("Problem creating client: {:?}", error),
@@ -40,14 +68,9 @@ fn signup_new_user() {
 
 #[test]
 fn signup_existing_user() {
-    init_database_file();
-    let rocket_instance = init_rocket();
+    let rocket_instance = setup_test_rocket();
     let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
     let client = Client::new(rocket_instance).expect("Problem Creating client");
-
-    test_db
-        .execute("BEGIN IMMEDIATE", &[])
-        .expect("Unable to start TRANSACTION");
     test_db
         .execute("INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
                 &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()])
@@ -62,10 +85,5 @@ fn signup_existing_user() {
             }",
         );
     let mut response = message.dispatch();
-    //println!("{:?}", response.body_string());
-    //println!("{:?}", Some(ErrorCode::UserAlreadyExists.to_string()));
     assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap()));
-    test_db
-        .execute("ROLLBACK", &[])
-        .expect("Bug:Unable to ROLLBACK TRANSACTION");
 }

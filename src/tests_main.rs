@@ -19,13 +19,7 @@ fn setup_test_rocket() -> rocket::Rocket {
         .finalize()
         .unwrap();
 
-    rocket::custom(config)
-        .attach(Database::fairing())
-        .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
-        .mount(
-            "/",
-            routes![index, files, signup, login, set_avatar, get_avatar],
-        )
+    init_rocket(rocket::custom(config))
 }
 
 //sign up - new user;

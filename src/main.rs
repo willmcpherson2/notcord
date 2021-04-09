@@ -136,8 +136,8 @@ fn init_database_file(filename: &str) {
         .expect("bug: failed to create sqlite table");
 }
 
-fn init_rocket() -> rocket::Rocket {
-    rocket::ignite()
+fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
+    rocket
         .attach(Database::fairing())
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
         .mount(
@@ -148,7 +148,7 @@ fn init_rocket() -> rocket::Rocket {
 
 fn main() {
     init_database_file("database.db");
-    init_rocket().launch();
+    init_rocket(rocket::ignite()).launch();
 }
 
 #[cfg(test)]

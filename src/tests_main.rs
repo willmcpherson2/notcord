@@ -53,6 +53,7 @@ fn signup_new_user() {
     };
 }
 
+//sign up - existing user
 #[test]
 fn signup_existing_user() {
     let rocket_instance = setup_test_rocket();
@@ -73,4 +74,48 @@ fn signup_existing_user() {
         );
     let mut response = message.dispatch();
     assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap()));
+}
+
+// log in - user does not exist
+#[test]
+fn login_user_not_exist() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let message = client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user03\",   
+            \"password\":\"test_hash03\"
+            }",
+        );
+    let mut response = message.dispatch();
+    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserDoesNotExist).unwrap()));
+}
+
+#[test]
+fn login_success() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user04\",   
+            \"password\":\"test_hash04\"
+            }",
+        ).dispatch();
+    let message = client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user04\",   
+            \"password\":\"test_hash04\"
+            }",
+        );
+    let mut response = message.dispatch();
+    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::Ok).unwrap()));
 }

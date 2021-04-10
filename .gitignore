@@ -4,8 +4,12 @@
 !.gitignore
 !README.md
 !Cargo.toml
+!Rocket.toml
 !src
 !src/**
 !app
 !app/**
+!tests
+!tests/**
 !rust-toolchain
+!default-avatar.png

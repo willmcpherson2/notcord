@@ -1,38 +1,59 @@
-.App {
-  text-align: center;
+.App{
+  border: 2px solid black;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.nopadding {
+  padding-left: 0px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+
+
+/*CSS For the Login Page*/
+.Login {
+  margin-top: 25vh;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.Login .text-muted button {
+  color: rgb(0, 119, 255);
+  cursor: pointer;
+  background-color: white;
+  border: none;
 }
 
-.App-link {
-  color: #61dafb;
+.Login img {
+  width: 128px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/*CSS For the Sidebar*/
+.sidebarPadding {
+  margin-left: -30px;
+}
+
+.sidebar {
+  height: 100vh;
+  width: 80px;
+  text-align: left;
+  background-color: #202a55;
+}
+
+.sidebar img {
+  width: 64px;
+  margin-left: -8px;
+  padding: 8px 0px 0px 0px;
+  cursor: pointer;
+}
+
+.sidebar .image:hover {
+  background-color:  rgba(0, 189, 189, 0.356);
+}
+
+.sidebar .hozLine {
+  background-color: #eeeeee;
+  height: 1.5px;
+  border-radius: 10em;
+}
+
+/*CSS For Settings Screen*/
+.settings {
+  padding-top: 50px;
 }

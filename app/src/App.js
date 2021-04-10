@@ -27,9 +27,9 @@ export default class App extends Component {
         case "signup":
           return <Signup setView={this.updateView} />
         case "dashboard":
-          return <Container fluid><Row><Col fluid><Sidebar setView={this.updateView} /></Col><Settings setView={this.updateView} /><Col fluid></Col></Row></Container>
+          return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
         default:
-          return <Login setView={this.updateView} />
+          return <Login setView={this.updateView} /> 
       }
 
     } else {

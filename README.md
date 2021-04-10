@@ -30,6 +30,16 @@ This will serve the app locally and you should be able to follow the link that
 Rocket printed to your terminal. It will probably be something like
 localhost:8000
 
+## Testing-Backend
+
+To run backend testing the test must be run consectively, running them in parrelell will result in errors
+     
+     cargo test -- --test-threads=1
+
+To run a individual test.
+
+    cargo test [test_name]
+
 ## Database
 
 The server creates a database file called `database.db`, or uses the existing

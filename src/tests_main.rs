@@ -3,9 +3,12 @@ use rocket::http::ContentType;
 use rocket::local::Client;
 use rocket::config::{Config, Environment, Value};
 use std::collections::HashMap;
+use std::fs;
 
 //set up rocket & empty test database
 fn setup_test_rocket() -> rocket::Rocket {
+    fs::remove_file("test_database.db")
+        .expect("bug: cannot delete old database");
     init_database_file("test_database.db");
 
     let mut database_config = HashMap::new();

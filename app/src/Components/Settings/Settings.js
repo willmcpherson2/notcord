@@ -15,12 +15,9 @@ export default class Settings extends Component {
 
   render() {
     return (
-      <Container className="Login">
+      <Container className='settings'>
         <Row className="justify-content-md-center">
-          <img src={Logo} alt="NotCord Logo"></img>
-        </Row>
-        <Row className="justify-content-md-center">
-          <h2>Dashboard</h2>
+          <h2>Settings</h2>
         </Row>
       </Container>
     );

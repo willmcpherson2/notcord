@@ -28,7 +28,7 @@ export default class Login extends Component {
       }).then(res =>
           res.json()
       ).then(res => {
-        console.log(res)
+        console.log(res.status)
         if (res === "Ok") {
           this.props.setView("dashboard")
         }

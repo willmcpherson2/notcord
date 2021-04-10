@@ -1,4 +1,10 @@
 #![feature(proc_macro_hygiene, decl_macro)]
+#![warn(clippy::pedantic, clippy::nursery)]
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::redundant_else)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::option_if_let_else)]
+
 #[macro_use]
 extern crate rocket;
 #[macro_use]

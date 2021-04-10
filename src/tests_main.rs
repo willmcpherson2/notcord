@@ -1,14 +1,13 @@
 use super::*;
+use rocket::config::{Config, Environment, Value};
 use rocket::http::ContentType;
 use rocket::local::Client;
-use rocket::config::{Config, Environment, Value};
 use std::collections::HashMap;
 use std::fs;
 
 //set up rocket & empty test database
 fn setup_test_rocket() -> rocket::Rocket {
-    fs::remove_file("test_database.db")
-        .expect("bug: cannot delete old database");
+    fs::remove_file("test_database.db").expect("bug: cannot delete old database");
     init_database_file("test_database.db");
 
     let mut database_config = HashMap::new();
@@ -16,7 +15,7 @@ fn setup_test_rocket() -> rocket::Rocket {
 
     database_config.insert("url", Value::from("test_database.db"));
     databases.insert("database", Value::from(database_config));
-    
+
     let config = Config::build(Environment::Development)
         .extra("databases", databases)
         .finalize()
@@ -60,20 +59,22 @@ fn signup_existing_user() {
     let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
     let client = Client::new(rocket_instance).expect("Problem Creating client");
     test_db
-        .execute("INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
-                &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()])
-        .expect("Unable to insert new users"); 
-    let message = client
-        .post("/signup")
-        .header(ContentType::JSON)
-        .body(
-            "{
+        .execute(
+            "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+            &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()],
+        )
+        .expect("Unable to insert new users");
+    let message = client.post("/signup").header(ContentType::JSON).body(
+        "{
             \"username\":\"test_user02\",   
             \"password\":\"test_hash02\"
             }",
-        );
+    );
     let mut response = message.dispatch();
-    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap()));
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap())
+    );
 }
 
 // log in - user does not exist
@@ -81,17 +82,17 @@ fn signup_existing_user() {
 fn login_user_not_exist() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating client");
-    let message = client
-        .post("/login")
-        .header(ContentType::JSON)
-        .body(
-            "{
+    let message = client.post("/login").header(ContentType::JSON).body(
+        "{
             \"username\":\"test_user03\",   
             \"password\":\"test_hash03\"
             }",
-        );
+    );
     let mut response = message.dispatch();
-    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::UserDoesNotExist).unwrap()));
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&ErrorCode::UserDoesNotExist).unwrap())
+    );
 }
 
 #[test]
@@ -106,16 +107,17 @@ fn login_success() {
             \"username\":\"test_user04\",   
             \"password\":\"test_hash04\"
             }",
-        ).dispatch();
-    let message = client
-        .post("/login")
-        .header(ContentType::JSON)
-        .body(
-            "{
+        )
+        .dispatch();
+    let message = client.post("/login").header(ContentType::JSON).body(
+        "{
             \"username\":\"test_user04\",   
             \"password\":\"test_hash04\"
             }",
-        );
+    );
     let mut response = message.dispatch();
-    assert_eq!(response.body_string(), Some(serde_json::to_string(&ErrorCode::Ok).unwrap()));
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&ErrorCode::Ok).unwrap())
+    );
 }

@@ -63,7 +63,7 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
         database
             .execute(
                 "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
-                &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()]
+                &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()],
             )
             .expect("bug: failed to insert user");
         Json(ErrorCode::Ok)

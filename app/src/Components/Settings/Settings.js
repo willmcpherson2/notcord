@@ -15,7 +15,7 @@ export default class Settings extends Component {
 
   render() {
     return (
-      <Container className='settings'>
+      <Container className='settings topPad'>
         <Row className="justify-content-md-center">
           <h2>Settings</h2>
         </Row>

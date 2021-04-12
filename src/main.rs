@@ -1,4 +1,10 @@
 #![feature(proc_macro_hygiene, decl_macro)]
+#![warn(clippy::pedantic, clippy::nursery)]
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::redundant_else)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::option_if_let_else)]
+
 #[macro_use]
 extern crate rocket;
 #[macro_use]
@@ -63,7 +69,7 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
         database
             .execute(
                 "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
-                &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()]
+                &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()],
             )
             .expect("bug: failed to insert user");
         Json(ErrorCode::Ok)
@@ -122,8 +128,8 @@ fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
     Content(ContentType::PNG, avatar)
 }
 
-fn init_database_file() {
-    rusqlite::Connection::open("database.db")
+fn init_database_file(filename: &str) {
+    rusqlite::Connection::open(filename)
         .expect("bug: failed to open/create database file")
         .execute(
             "CREATE TABLE IF NOT EXISTS User (
@@ -136,8 +142,8 @@ fn init_database_file() {
         .expect("bug: failed to create sqlite table");
 }
 
-fn init_rocket() -> rocket::Rocket {
-    rocket::ignite()
+fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
+    rocket
         .attach(Database::fairing())
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
         .mount(
@@ -147,8 +153,8 @@ fn init_rocket() -> rocket::Rocket {
 }
 
 fn main() {
-    init_database_file();
-    init_rocket().launch();
+    init_database_file("database.db");
+    init_rocket(rocket::ignite()).launch();
 }
 
 #[cfg(test)]

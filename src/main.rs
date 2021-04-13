@@ -55,7 +55,7 @@ fn files(file: PathBuf) -> Option<NamedFile> {
 #[post("/signup", data = "<login>")]
 fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
     let mut statement = database
-        .prepare("SELECT * FROM User WHERE username=?1")
+        .prepare("SELECT * FROM users WHERE username=?1")
         .expect("bug: failed to prepare statement");
     let user_exists = statement
         .exists(&[&login.username])
@@ -68,7 +68,7 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
 
         database
             .execute(
-                "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+                "INSERT INTO users (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
                 &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()],
             )
             .expect("bug: failed to insert user");
@@ -79,7 +79,7 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
 #[post("/login", data = "<login>")]
 fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
     let mut statement = database
-        .prepare("SELECT password_hash FROM User WHERE username=?1")
+        .prepare("SELECT password_hash FROM users WHERE username=?1")
         .unwrap();
     let result: Result<String, _> = statement.query_row(&[&login.username], |row| row.get(0));
 
@@ -103,7 +103,7 @@ fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<Error
     if let Some(cookie) = cookies.get_private("username") {
         database
             .execute(
-                "UPDATE User SET avatar=?1 WHERE username=?2",
+                "UPDATE users SET avatar=?1 WHERE username=?2",
                 &[&buf, &cookie.value()],
             )
             .expect("bug: failed to insert avatar");
@@ -119,7 +119,7 @@ fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
     let username: &str = &username;
 
     let mut statement = database
-        .prepare("SELECT avatar FROM User WHERE username=?1")
+        .prepare("SELECT avatar FROM users WHERE username=?1")
         .unwrap();
     let avatar = statement.query_row(&[&username], |row| row.get(0));
 
@@ -132,8 +132,8 @@ fn init_database_file(filename: &str) {
     rusqlite::Connection::open(filename)
         .expect("bug: failed to open/create database file")
         .execute(
-            "CREATE TABLE IF NOT EXISTS User (
-                username TEXT NOT NULL,
+            "CREATE TABLE IF NOT EXISTS users (
+                username TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 avatar BLOB NOT NULL
             )",

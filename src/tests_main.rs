@@ -43,7 +43,7 @@ fn signup_new_user() {
         )
         .dispatch();
     let mut stmt = test_db
-        .prepare("SELECT username FROM User WHERE (username = 'test_user01')")
+        .prepare("SELECT username FROM users WHERE (username = 'test_user01')")
         .expect("Problem parsing sql");
     println!("{:?}", stmt.exists(&[]),);
     match stmt.exists(&[]) {
@@ -62,7 +62,7 @@ fn signup_existing_user() {
     let client = Client::new(rocket_instance).expect("Problem Creating client");
     test_db
         .execute(
-            "INSERT INTO User (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+            "INSERT INTO users (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
             &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()],
         )
         .expect("Unable to insert new users");

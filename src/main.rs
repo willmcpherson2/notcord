@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 use std::io;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 #[database("database")]
 struct Database(rusqlite::Connection);
@@ -79,14 +80,15 @@ fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
 #[post("/login", data = "<login>")]
 fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
     let mut statement = database
-        .prepare("SELECT password_hash FROM users WHERE username=?1")
+        .prepare("SELECT ROWID, password_hash FROM users WHERE username=?1")
         .unwrap();
-    let result: Result<String, _> = statement.query_row(&[&login.username], |row| row.get(0));
+    let result: Result<(i64, String), _> =
+        statement.query_row(&[&login.username], |row| (row.get(0), row.get(1)));
 
-    if let Ok(password_hash) = result {
+    if let Ok((user_id, password_hash)) = result {
         let hash_match = bcrypt::verify(&login.password, &password_hash).unwrap();
         if hash_match {
-            cookies.add_private(Cookie::new("username", login.username.clone()));
+            cookies.add_private(Cookie::new("user_id", user_id.to_string()));
             return Json(ErrorCode::Ok);
         }
     }
@@ -100,11 +102,12 @@ fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<Error
         .read_to_end(&mut buf)
         .expect("bug: failed to read PNG");
 
-    if let Some(cookie) = cookies.get_private("username") {
+    if let Some(cookie) = cookies.get_private("user_id") {
+        let user_id = i64::from_str(cookie.value()).unwrap();
         database
             .execute(
-                "UPDATE users SET avatar=?1 WHERE username=?2",
-                &[&buf, &cookie.value()],
+                "UPDATE users SET avatar=?1 WHERE ROWID=?2",
+                &[&buf, &user_id],
             )
             .expect("bug: failed to insert avatar");
 

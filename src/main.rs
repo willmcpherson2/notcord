@@ -131,18 +131,41 @@ fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
     Content(ContentType::PNG, avatar)
 }
 
+#[post("/add_group", data = "<name>")]
+fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
+    let name: &str = &name;
+
+    if let Some(cookie) = cookies.get_private("user_id") {
+        let user_id = i64::from_str(cookie.value()).unwrap();
+        database
+            .execute(
+                "INSERT INTO groups (name, admin_id) VALUES (?1, ?2)",
+                &[&name, &user_id],
+            )
+            .unwrap();
+    } else {
+        return Json(ErrorCode::NotLoggedIn);
+    }
+
+    Json(ErrorCode::Ok)
+}
+
 fn init_database_file(filename: &str) {
     rusqlite::Connection::open(filename)
         .expect("bug: failed to open/create database file")
-        .execute(
+        .execute_batch(
             "CREATE TABLE IF NOT EXISTS users (
                 username TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 avatar BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS groups (
+                name TEXT NOT NULL,
+                admin_id INTEGER NOT NULL,
+                FOREIGN KEY (admin_id) REFERENCES users (ROWID) ON DELETE CASCADE
             )",
-            &[],
         )
-        .expect("bug: failed to create sqlite table");
+        .expect("bug: failed to create sqlite tables");
 }
 
 fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
@@ -151,7 +174,7 @@ fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
         .mount(
             "/",
-            routes![index, files, signup, login, set_avatar, get_avatar],
+            routes![index, files, signup, login, set_avatar, get_avatar, add_group],
         )
 }
 

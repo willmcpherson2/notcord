@@ -12,3 +12,5 @@
 !app/**
 !rust-toolchain
 !default-avatar.png
+!Procfile
+!app.json

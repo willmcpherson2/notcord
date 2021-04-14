@@ -15,7 +15,7 @@ extern crate rocket;
 extern crate rocket_contrib;
 
 #[cfg(test)]
-mod tests_main;
+mod test;
 #[macro_use]
 mod util;
 mod routes;

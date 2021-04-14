@@ -1,16 +1,17 @@
-use super::*;
+use crate::util::{self, Database, ErrorCode};
 use rocket::config::{Config, Environment, Value};
 use rocket::http::ContentType;
 use rocket::local::Client;
 use std::collections::HashMap;
 use std::fs;
+use std::path::Path;
 
 //set up rocket & empty test database
 fn setup_test_rocket() -> rocket::Rocket {
     if Path::new("test_database.db").exists() {
         fs::remove_file("test_database.db").expect("bug: cannot delete old database");
     }
-    init_database_file("test_database.db");
+    util::init_database_file("test_database.db");
 
     let mut database_config = HashMap::new();
     let mut databases = HashMap::new();
@@ -23,7 +24,7 @@ fn setup_test_rocket() -> rocket::Rocket {
         .finalize()
         .unwrap();
 
-    init_rocket(rocket::custom(config))
+    util::init_rocket(rocket::custom(config))
 }
 
 //sign up - new user;
@@ -63,7 +64,11 @@ fn signup_existing_user() {
     test_db
         .execute(
             "INSERT INTO users (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
-            &[&"test_user02", &"test_hash02", &DEFAULT_AVATAR.to_vec()],
+            &[
+                &"test_user02",
+                &"test_hash02",
+                &util::DEFAULT_AVATAR.to_vec(),
+            ],
         )
         .expect("Unable to insert new users");
     let message = client.post("/signup").header(ContentType::JSON).body(

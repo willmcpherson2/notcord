@@ -1,5 +1,4 @@
 use rocket_contrib::databases::rusqlite;
-use serde::Serialize;
 
 macro_rules! execute {
     ($database:expr, $query:expr, $($params:expr),*) => {
@@ -30,14 +29,6 @@ macro_rules! exists {
 
 #[database("database")]
 pub struct Database(rusqlite::Connection);
-
-#[derive(Serialize)]
-pub enum ErrorCode {
-    Ok,
-    UserAlreadyExists,
-    UserDoesNotExist,
-    NotLoggedIn,
-}
 
 pub static DEFAULT_AVATAR: &[u8; 1597] = include_bytes!("../default-avatar.png");
 

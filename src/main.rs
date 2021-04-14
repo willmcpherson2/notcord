@@ -18,6 +18,8 @@ extern crate rocket_contrib;
 mod test;
 #[macro_use]
 mod util;
+#[macro_use]
+mod response;
 mod routes;
 
 fn main() {

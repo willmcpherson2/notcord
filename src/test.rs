@@ -1,4 +1,5 @@
-use crate::util::{self, Database, ErrorCode};
+use crate::response::*;
+use crate::util::{self, Database};
 use rocket::config::{Config, Environment, Value};
 use rocket::http::ContentType;
 use rocket::local::Client;
@@ -80,7 +81,7 @@ fn signup_existing_user() {
     let mut response = message.dispatch();
     assert_eq!(
         response.body_string(),
-        Some(serde_json::to_string(&ErrorCode::UserAlreadyExists).unwrap())
+        Some(serde_json::to_string(&Err::UserAlreadyExists).unwrap())
     );
 }
 
@@ -98,7 +99,7 @@ fn login_user_not_exist() {
     let mut response = message.dispatch();
     assert_eq!(
         response.body_string(),
-        Some(serde_json::to_string(&ErrorCode::UserDoesNotExist).unwrap())
+        Some(serde_json::to_string(&Err::UserDoesNotExist).unwrap())
     );
 }
 
@@ -125,6 +126,6 @@ fn login_success() {
     let mut response = message.dispatch();
     assert_eq!(
         response.body_string(),
-        Some(serde_json::to_string(&ErrorCode::Ok).unwrap())
+        Some(serde_json::to_string(&Ok::Ok).unwrap())
     );
 }

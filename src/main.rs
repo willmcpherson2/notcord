@@ -24,6 +24,33 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+macro_rules! execute {
+    ($database:expr, $query:expr, $($params:expr),*) => {
+        $database
+            .execute($query, &[$($params),*])
+            .unwrap()
+    }
+}
+
+macro_rules! query_row {
+    ($database:expr, $closure:expr, $query:expr, $($params:expr),*) => {
+        $database
+            .prepare($query)
+            .unwrap()
+            .query_row(&[$($params)*,], $closure)
+    }
+}
+
+macro_rules! exists {
+    ($database:expr, $query:expr, $($params:expr),*) => {
+        $database
+            .prepare($query)
+            .unwrap()
+            .exists(&[$($params)*,])
+            .unwrap()
+    }
+}
+
 #[database("database")]
 struct Database(rusqlite::Connection);
 
@@ -55,35 +82,37 @@ fn files(file: PathBuf) -> Option<NamedFile> {
 
 #[post("/signup", data = "<login>")]
 fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
-    let mut statement = database
-        .prepare("SELECT * FROM users WHERE username=?1")
-        .expect("bug: failed to prepare statement");
-    let user_exists = statement
-        .exists(&[&login.username])
-        .expect("bug: failed to query database");
+    let user_exists = exists!(
+        database,
+        "SELECT * FROM users WHERE (username=?1)",
+        &login.username
+    );
 
     if user_exists {
         Json(ErrorCode::UserAlreadyExists)
     } else {
         let password_hash = bcrypt::hash(&login.password, bcrypt::DEFAULT_COST).unwrap();
 
-        database
-            .execute(
-                "INSERT INTO users (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
-                &[&login.username, &password_hash, &DEFAULT_AVATAR.to_vec()],
-            )
-            .expect("bug: failed to insert user");
+        execute!(
+            database,
+            "INSERT INTO users (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
+            &login.username,
+            &password_hash,
+            &DEFAULT_AVATAR.to_vec()
+        );
+
         Json(ErrorCode::Ok)
     }
 }
 
 #[post("/login", data = "<login>")]
 fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
-    let mut statement = database
-        .prepare("SELECT ROWID, password_hash FROM users WHERE username=?1")
-        .unwrap();
-    let result: Result<(i64, String), _> =
-        statement.query_row(&[&login.username], |row| (row.get(0), row.get(1)));
+    let result: Result<(i64, String), _> = query_row!(
+        database,
+        |row| (row.get(0), row.get(1)),
+        "SELECT ROWID, password_hash FROM users WHERE username=?1",
+        &login.username
+    );
 
     if let Ok((user_id, password_hash)) = result {
         let hash_match = bcrypt::verify(&login.password, &password_hash).unwrap();
@@ -104,12 +133,13 @@ fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<Error
 
     if let Some(cookie) = cookies.get_private("user_id") {
         let user_id = i64::from_str(cookie.value()).unwrap();
-        database
-            .execute(
-                "UPDATE users SET avatar=?1 WHERE ROWID=?2",
-                &[&buf, &user_id],
-            )
-            .expect("bug: failed to insert avatar");
+
+        execute!(
+            database,
+            "UPDATE users SET avatar=?1 WHERE ROWID=?2",
+            &buf,
+            &user_id
+        );
 
         Json(ErrorCode::Ok)
     } else {
@@ -121,10 +151,12 @@ fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<Error
 fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
     let username: &str = &username;
 
-    let mut statement = database
-        .prepare("SELECT avatar FROM users WHERE username=?1")
-        .unwrap();
-    let avatar = statement.query_row(&[&username], |row| row.get(0));
+    let avatar = query_row!(
+        database,
+        |row| row.get(0),
+        "SELECT avatar FROM users WHERE username=?1",
+        &username
+    );
 
     let avatar = avatar.unwrap_or_else(|_| DEFAULT_AVATAR.to_vec());
 
@@ -137,12 +169,13 @@ fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> Json
 
     if let Some(cookie) = cookies.get_private("user_id") {
         let user_id = i64::from_str(cookie.value()).unwrap();
-        database
-            .execute(
-                "INSERT INTO groups (name, admin_id) VALUES (?1, ?2)",
-                &[&name, &user_id],
-            )
-            .unwrap();
+
+        execute!(
+            database,
+            "INSERT INTO groups (name, admin_id) VALUES (?1, ?2)",
+            &name,
+            &user_id
+        );
     } else {
         return Json(ErrorCode::NotLoggedIn);
     }

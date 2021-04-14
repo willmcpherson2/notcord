@@ -1,4 +1,7 @@
+use crate::response::*;
+use rocket::http::Cookies;
 use rocket_contrib::databases::rusqlite;
+use std::str::FromStr;
 
 macro_rules! execute {
     ($database:expr, $query:expr, $($params:expr),*) => {
@@ -60,4 +63,14 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             "/",
             routes![index, files, signup, login, set_avatar, get_avatar, add_group],
         )
+}
+
+pub fn get_logged_in_user_id(cookies: &mut Cookies) -> Result<i64, Err> {
+    let cookie = cookies.get_private("user_id").ok_or(Err::NotLoggedIn)?;
+
+    let value = cookie.value();
+
+    let user_id = i64::from_str(value).unwrap();
+
+    Ok(user_id)
 }

@@ -16,7 +16,7 @@ macro_rules! query_row {
         $database
             .prepare($query)
             .unwrap()
-            .query_row(&[$($params)*,], $closure)
+            .query_row(&[$($params),*], $closure)
     }
 }
 
@@ -25,7 +25,7 @@ macro_rules! exists {
         $database
             .prepare($query)
             .unwrap()
-            .exists(&[$($params)*,])
+            .exists(&[$($params),*])
             .unwrap()
     }
 }
@@ -45,9 +45,15 @@ pub fn init_database_file(filename: &str) {
                 avatar BLOB NOT NULL
             );
             CREATE TABLE IF NOT EXISTS groups (
-                name TEXT NOT NULL,
-                admin_id INTEGER NOT NULL,
-                FOREIGN KEY (admin_id) REFERENCES users (ROWID) ON DELETE CASCADE
+                name TEXT NOT NULL UNIQUE
+            );
+            CREATE TABLE IF NOT EXISTS group_members (
+                user_id INTEGER NOT NULL,
+                group_id INTEGER NOT NULL,
+                is_admin INTEGER NOT NULL,
+                PRIMARY KEY (user_id, group_id),
+                FOREIGN KEY (user_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (group_id) REFERENCES groups (ROWID) ON DELETE CASCADE
             )",
         )
         .expect("bug: failed to create sqlite tables");
@@ -61,7 +67,16 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
         .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
         .mount(
             "/",
-            routes![index, files, signup, login, set_avatar, get_avatar, add_group],
+            routes![
+                index,
+                files,
+                signup,
+                login,
+                set_avatar,
+                get_avatar,
+                add_group,
+                add_user_to_group
+            ],
         )
 }
 

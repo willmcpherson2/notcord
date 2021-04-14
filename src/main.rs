@@ -1,4 +1,4 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#![feature(proc_macro_hygiene, decl_macro, try_trait)]
 #![warn(clippy::pedantic, clippy::nursery)]
 #![allow(
     clippy::collapsible_if,

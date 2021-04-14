@@ -1,3 +1,4 @@
+use crate::response::*;
 use crate::util::*;
 use rocket::http::{ContentType, Cookie, Cookies};
 use rocket::response::{Content, NamedFile};
@@ -25,7 +26,7 @@ pub fn files(file: PathBuf) -> Option<NamedFile> {
 }
 
 #[post("/signup", data = "<login>")]
-pub fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
+pub fn signup(login: Json<Login>, database: Database) -> Response {
     let user_exists = exists!(
         database,
         "SELECT * FROM users WHERE (username=?1)",
@@ -33,7 +34,7 @@ pub fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
     );
 
     if user_exists {
-        Json(ErrorCode::UserAlreadyExists)
+        err!(Err::UserAlreadyExists)
     } else {
         let password_hash = bcrypt::hash(&login.password, bcrypt::DEFAULT_COST).unwrap();
 
@@ -45,12 +46,12 @@ pub fn signup(login: Json<Login>, database: Database) -> Json<ErrorCode> {
             &DEFAULT_AVATAR.to_vec()
         );
 
-        Json(ErrorCode::Ok)
+        ok!()
     }
 }
 
 #[post("/login", data = "<login>")]
-pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
+pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Response {
     let result: Result<(i64, String), _> = query_row!(
         database,
         |row| (row.get(0), row.get(1)),
@@ -62,14 +63,14 @@ pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Js
         let hash_match = bcrypt::verify(&login.password, &password_hash).unwrap();
         if hash_match {
             cookies.add_private(Cookie::new("user_id", user_id.to_string()));
-            return Json(ErrorCode::Ok);
+            return ok!();
         }
     }
-    Json(ErrorCode::UserDoesNotExist)
+    err!(Err::UserDoesNotExist)
 }
 
 #[post("/set_avatar", format = "image/png", data = "<png>")]
-pub fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
+pub fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Response {
     let mut buf = Vec::new();
     png.open()
         .read_to_end(&mut buf)
@@ -85,9 +86,9 @@ pub fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Json<E
             &user_id
         );
 
-        Json(ErrorCode::Ok)
+        ok!()
     } else {
-        Json(ErrorCode::NotLoggedIn)
+        err!(Err::NotLoggedIn)
     }
 }
 
@@ -108,7 +109,7 @@ pub fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> 
 }
 
 #[post("/add_group", data = "<name>")]
-pub fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> Json<ErrorCode> {
+pub fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> Response {
     let name: &str = &name;
 
     if let Some(cookie) = cookies.get_private("user_id") {
@@ -121,8 +122,8 @@ pub fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> 
             &user_id
         );
     } else {
-        return Json(ErrorCode::NotLoggedIn);
+        return err!(Err::NotLoggedIn);
     }
 
-    Json(ErrorCode::Ok)
+    ok!()
 }

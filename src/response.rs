@@ -33,7 +33,11 @@ pub enum Ok {
 pub enum Err {
     UserAlreadyExists,
     UserDoesNotExist,
+    UserAlreadyInGroup,
+    GroupDoesNotExist,
+    GroupAlreadyExists,
     NotLoggedIn,
+    PermissionDenied,
 }
 
 impl<'r> Responder<'r> for Response {

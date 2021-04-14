@@ -10,6 +10,12 @@ use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 #[derive(Deserialize)]
+pub struct UserAndGroup {
+    username: String,
+    group_name: String,
+}
+
+#[derive(Deserialize)]
 pub struct Login {
     username: String,
     password: String,
@@ -104,11 +110,81 @@ pub fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> 
 pub fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
+    let name = name.into_inner();
+
+    let group_already_exists = exists!(database, "SELECT * FROM groups WHERE name=?1", &name);
+    if group_already_exists {
+        return err!(Err::GroupAlreadyExists);
+    }
+
+    execute!(database, "INSERT INTO groups (name) VALUES (?1)", &name);
+
+    let group_id: i64 = query_row!(
+        database,
+        |row| row.get(0),
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &name
+    )
+    .unwrap();
+
     execute!(
         database,
-        "INSERT INTO groups (name, admin_id) VALUES (?1, ?2)",
-        &name.into_inner(),
-        &user_id
+        "INSERT INTO group_members (user_id, group_id, is_admin) VALUES (?1, ?2, 1)",
+        &user_id,
+        &group_id
+    );
+    ok!()
+}
+
+#[post("/add_user_to_group", data = "<user_and_group>")]
+pub fn add_user_to_group(
+    user_and_group: Json<UserAndGroup>,
+    database: Database,
+    mut cookies: Cookies,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        |row| row.get(0),
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &user_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        return err!(Err::PermissionDenied);
+    }
+
+    let user_id: i64 = query_row!(
+        database,
+        |row| row.get(0),
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_and_group.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let user_already_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if user_already_in_group {
+        return err!(Err::UserAlreadyInGroup);
+    }
+
+    execute!(
+        database,
+        "INSERT INTO group_members (user_id, group_id, is_admin) VALUES (?1, ?2, 0)",
+        &user_id,
+        &group_id
     );
     ok!()
 }

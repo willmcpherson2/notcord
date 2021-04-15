@@ -17,6 +17,9 @@ macro_rules! query_row {
             .prepare($query)
             .unwrap()
             .query_row(&[$($params),*], $closure)
+    };
+    ($database:expr, $query:expr, $($params:expr),*) => {
+        query_row!($database, |row| row.get(0), $query, $($params),*)
     }
 }
 
@@ -35,7 +38,10 @@ macro_rules! query_rows {
             rows.push(row.unwrap());
         }
         rows
-    }}
+    }};
+    ($database:expr, $query:expr, $($params:expr),*) => {
+        query_rows!($database, |row| row.get(0), $query, $($params),*)
+    }
 }
 
 macro_rules! exists {

@@ -97,7 +97,6 @@ pub fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Respon
 pub fn get_avatar(username: Json<&str>, database: Database) -> Content<Vec<u8>> {
     let avatar = query_row!(
         database,
-        |row| row.get(0),
         "SELECT avatar FROM users WHERE username=?1",
         &username.into_inner()
     );
@@ -119,13 +118,8 @@ pub fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> 
 
     execute!(database, "INSERT INTO groups (name) VALUES (?1)", &name);
 
-    let group_id: i64 = query_row!(
-        database,
-        |row| row.get(0),
-        "SELECT ROWID FROM groups WHERE name=?1",
-        &name
-    )
-    .unwrap();
+    let group_id: i64 =
+        query_row!(database, "SELECT ROWID FROM groups WHERE name=?1", &name).unwrap();
 
     execute!(
         database,
@@ -146,7 +140,6 @@ pub fn add_user_to_group(
 
     let group_id: i64 = query_row!(
         database,
-        |row| row.get(0),
         "SELECT ROWID FROM groups WHERE name=?1",
         &user_and_group.group_name
     )
@@ -164,7 +157,6 @@ pub fn add_user_to_group(
 
     let user_id: i64 = query_row!(
         database,
-        |row| row.get(0),
         "SELECT ROWID FROM users WHERE username=?1",
         &user_and_group.username
     )
@@ -193,7 +185,6 @@ pub fn add_user_to_group(
 pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
     let group_id: i64 = query_row!(
         database,
-        |row| row.get(0),
         "SELECT ROWID FROM groups WHERE name=?1",
         &name.into_inner()
     )
@@ -201,7 +192,6 @@ pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
 
     let usernames: Vec<String> = query_rows!(
         database,
-        |row| row.get(0),
         "SELECT username FROM users INNER JOIN group_members ON users.ROWID = group_members.user_id WHERE group_id=?1",
         &group_id
     );

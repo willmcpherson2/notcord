@@ -10,6 +10,13 @@ use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 #[derive(Deserialize)]
+pub struct UserGroupChannel {
+    username: String,
+    group_name: String,
+    channel_name: String,
+}
+
+#[derive(Deserialize)]
 pub struct ChannelAndGroup {
     channel_name: String,
     group_name: String,
@@ -261,6 +268,75 @@ pub fn add_channel_to_group(
         "INSERT INTO group_channels (channel_id, group_id) VALUES (?1, ?2)",
         &channel_id,
         &group_id
+    );
+    ok!()
+}
+
+#[post("/add_user_to_channel", data = "<user_group_channel>")]
+pub fn add_user_to_channel(
+    user_group_channel: Json<UserGroupChannel>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &user_group_channel.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        return err!(Err::PermissionDenied);
+    }
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channels.ROWID FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &user_group_channel.channel_name,
+        &group_id
+    )
+    .map_err(|_| Err::ChannelDoesNotExist)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_group_channel.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let user_in_channel = exists!(
+        database,
+        "SELECT * FROM channel_members WHERE user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+    if user_in_channel {
+        return err!(Err::UserAlreadyInChannel);
+    }
+
+    execute!(
+        database,
+        "INSERT INTO channel_members (user_id, channel_id) VALUES (?1, ?2)",
+        &user_id,
+        &channel_id
     );
     ok!()
 }

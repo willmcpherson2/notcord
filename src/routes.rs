@@ -193,6 +193,7 @@ pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
     let usernames: Vec<String> = query_rows!(
         database,
         "SELECT username FROM users INNER JOIN group_members ON users.ROWID = group_members.user_id WHERE group_id=?1",
+        &group_id,
         &group_id
     );
 

@@ -4,7 +4,7 @@ use rocket_contrib::databases::rusqlite;
 use std::str::FromStr;
 
 macro_rules! execute {
-    ($database:expr, $query:expr, $($params:expr),*) => {
+    ($database:expr, $query:literal, $($params:expr),*) => {
         $database
             .execute($query, &[$($params),*])
             .unwrap()
@@ -12,7 +12,7 @@ macro_rules! execute {
 }
 
 macro_rules! query_row {
-    ($database:expr, $closure:expr, $query:expr, $($params:expr),*) => {
+    ($database:expr, $closure:expr, $query:literal, $($params:expr),*) => {
         $database
             .prepare($query)
             .unwrap()
@@ -24,7 +24,7 @@ macro_rules! query_row {
 }
 
 macro_rules! query_rows {
-    ($database:expr, $closure:expr, $query:expr, $($params:expr),*) => {{
+    ($database:expr, $closure:expr, $query:literal, $($params:expr),*) => {{
         let mut statement = $database
             .prepare($query)
             .unwrap();
@@ -39,13 +39,13 @@ macro_rules! query_rows {
         }
         rows
     }};
-    ($database:expr, $query:expr, $($params:expr),*) => {
+    ($database:expr, $query:literal, $($params:expr),*) => {
         query_rows!($database, |row| row.get(0), $query, $($params),*)
     }
 }
 
 macro_rules! exists {
-    ($database:expr, $query:expr, $($params:expr),*) => {
+    ($database:expr, $query:literal, $($params:expr),*) => {
         $database
             .prepare($query)
             .unwrap()

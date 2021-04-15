@@ -5,8 +5,8 @@ use serde::Serialize;
 use std::ops::Try;
 
 macro_rules! ok {
-    ($success:expr) => {
-        Response::Ok($success)
+    ($ok:expr) => {
+        Response::Ok($ok)
     };
     () => {
         Response::Ok(Ok::Ok)
@@ -14,8 +14,8 @@ macro_rules! ok {
 }
 
 macro_rules! err {
-    ($failure:expr) => {
-        Response::Err($failure)
+    ($err:expr) => {
+        Response::Err($err)
     };
 }
 

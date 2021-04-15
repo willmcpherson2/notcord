@@ -188,3 +188,23 @@ pub fn add_user_to_group(
     );
     ok!()
 }
+
+#[post("/get_users_in_group", data = "<name>")]
+pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
+    let group_id: i64 = query_row!(
+        database,
+        |row| row.get(0),
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &name.into_inner()
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let usernames: Vec<String> = query_rows!(
+        database,
+        |row| row.get(0),
+        "SELECT username FROM users INNER JOIN group_members ON users.ROWID = group_members.user_id WHERE group_id=?1",
+        &group_id
+    );
+
+    ok!(Ok::Usernames(usernames))
+}

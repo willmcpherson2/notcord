@@ -20,6 +20,24 @@ macro_rules! query_row {
     }
 }
 
+macro_rules! query_rows {
+    ($database:expr, $closure:expr, $query:expr, $($params:expr),*) => {{
+        let mut statement = $database
+            .prepare($query)
+            .unwrap();
+
+        let row_iter = statement
+            .query_map(&[$($params),*], $closure)
+            .unwrap();
+
+        let mut rows = vec![];
+        for row in row_iter {
+            rows.push(row.unwrap());
+        }
+        rows
+    }}
+}
+
 macro_rules! exists {
     ($database:expr, $query:expr, $($params:expr),*) => {
         $database
@@ -75,7 +93,8 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 set_avatar,
                 get_avatar,
                 add_group,
-                add_user_to_group
+                add_user_to_group,
+                get_users_in_group
             ],
         )
 }

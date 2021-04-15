@@ -6,7 +6,8 @@
     clippy::needless_pass_by_value,
     clippy::option_if_let_else,
     clippy::option_if_let_else,
-    clippy::wildcard_imports
+    clippy::wildcard_imports,
+    clippy::match_wildcard_for_single_variants
 )]
 
 #[macro_use]

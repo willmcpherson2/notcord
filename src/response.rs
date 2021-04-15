@@ -37,6 +37,7 @@ pub enum Err {
     UserAlreadyInGroup,
     GroupDoesNotExist,
     GroupAlreadyExists,
+    ChannelAlreadyExists,
     NotLoggedIn,
     PermissionDenied,
 }

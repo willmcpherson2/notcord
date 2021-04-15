@@ -10,6 +10,12 @@ use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 #[derive(Deserialize)]
+pub struct ChannelAndGroup {
+    channel_name: String,
+    group_name: String,
+}
+
+#[derive(Deserialize)]
 pub struct UserAndGroup {
     username: String,
     group_name: String,
@@ -198,4 +204,63 @@ pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
     );
 
     ok!(Ok::Usernames(usernames))
+}
+
+#[post("/add_channel_to_group", data = "<channel_and_group>")]
+pub fn add_channel_to_group(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &channel_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        return err!(Err::PermissionDenied);
+    }
+
+    let channel_in_group_exists = exists!(
+        database,
+        "SELECT * FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &channel_and_group.channel_name,
+        &group_id
+    );
+    if channel_in_group_exists {
+        return err!(Err::ChannelAlreadyExists);
+    }
+
+    execute!(
+        database,
+        "INSERT INTO channels (name) VALUES (?1)",
+        &channel_and_group.channel_name
+    );
+
+    // Race condition here? Someone could add a channel with the same name.
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT MAX(ROWID) FROM channels WHERE name=?1",
+        &channel_and_group.channel_name
+    )
+    .unwrap();
+
+    execute!(
+        database,
+        "INSERT INTO group_channels (channel_id, group_id) VALUES (?1, ?2)",
+        &channel_id,
+        &group_id
+    );
+    ok!()
 }

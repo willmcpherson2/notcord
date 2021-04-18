@@ -121,11 +121,105 @@ fn login_success() {
         "{
             \"username\":\"test_user04\",   
             \"password\":\"test_hash04\"
-            }",
+        }",
     );
     let mut response = message.dispatch();
     assert_eq!(
         response.body_string(),
         Some(serde_json::to_string(&Ok::Ok).unwrap())
     );
+}
+
+#[test]
+fn add_group_not_logged_in() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+
+    let message = client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
+}
+
+#[test]
+fn add_group_success() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+
+    client.post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client.post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    
+    let message = client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Ok::Ok).unwrap()));
+}
+
+#[test]
+fn add_group_group_exists() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+
+    client.post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client.post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+     client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+
+    let message = client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::GroupAlreadyExists).unwrap()));
 }

@@ -353,3 +353,45 @@ pub fn add_user_to_channel(
     );
     ok!()
 }
+
+#[post("/get_channels_in_group_for_user", data = "<group_name>")]
+pub fn get_channels_in_group_for_user(
+    group_name: Json<&str>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &group_name.into_inner()
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let channels: Vec<String> = query_rows!(
+        database,
+        "SELECT channels.name
+        FROM ((channels
+        JOIN group_channels
+        ON channels.ROWID = group_channels.channel_id)
+        JOIN channel_members
+        ON channel_members.channel_id = group_channels.channel_id)
+        WHERE channel_members.user_id=?1
+        AND group_channels.group_id=?2",
+        &user_id,
+        &group_id
+    );
+
+    ok!(Ok::Channels(channels))
+}

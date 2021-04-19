@@ -199,3 +199,16 @@ pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
 
     ok!(Ok::Usernames(usernames))
 }
+
+#[post("/get_groups_for_user")]
+pub fn get_groups_for_user(mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let groups: Vec<String> = query_rows!(
+        database,
+        "SELECT groups.name FROM groups JOIN group_members ON groups.ROWID = group_members.group_id WHERE group_members.user_id = ?1",
+        &user_id
+    );
+
+    ok!(Ok::Groups(groups))
+}

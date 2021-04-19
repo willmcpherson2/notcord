@@ -123,6 +123,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 add_user_to_channel,
                 get_groups_for_user,
                 get_channels_in_group_for_user,
+                get_users_in_channel,
             ],
         )
 }

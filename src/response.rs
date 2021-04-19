@@ -38,6 +38,7 @@ pub enum Err {
     UserDoesNotExist,
     UserAlreadyInGroup,
     UserNotInGroup,
+    UserNotInChannel,
     UserAlreadyInChannel,
     GroupDoesNotExist,
     GroupAlreadyExists,

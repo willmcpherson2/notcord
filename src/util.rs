@@ -1,6 +1,7 @@
 use crate::response::*;
 use rocket::http::Cookies;
 use rocket_contrib::databases::rusqlite;
+use std::path::Path;
 use std::str::FromStr;
 
 macro_rules! execute {
@@ -59,8 +60,8 @@ pub struct Database(rusqlite::Connection);
 
 pub static DEFAULT_AVATAR: &[u8; 1597] = include_bytes!("../default-avatar.png");
 
-pub fn init_database_file(filename: &str) {
-    rusqlite::Connection::open(filename)
+pub fn init_database_file(path: &Path) {
+    rusqlite::Connection::open(path)
         .expect("bug: failed to open/create database file")
         .execute_batch(
             "CREATE TABLE IF NOT EXISTS users (
@@ -120,6 +121,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 get_users_in_group,
                 add_channel_to_group,
                 add_user_to_channel,
+                get_groups_for_user,
             ],
         )
 }

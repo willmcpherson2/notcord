@@ -354,6 +354,62 @@ pub fn add_user_to_channel(
     ok!()
 }
 
+#[post("/get_users_in_channel", data = "<channel_and_group>")]
+pub fn get_users_in_channel(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &channel_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channels.ROWID FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &channel_and_group.channel_name,
+        &group_id
+    )
+    .map_err(|_| Err::ChannelDoesNotExist)?;
+
+    let user_in_channel = exists!(
+        database,
+        "SELECT * FROM channel_members WHERE user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+    if !user_in_channel {
+        return err!(Err::UserNotInChannel);
+    }
+
+    let usernames: Vec<String> = query_rows!(
+        database,
+        "SELECT users.username
+        FROM users
+        JOIN channel_members
+        ON users.ROWID = channel_members.user_id
+        WHERE channel_id=?1",
+        &channel_id
+    );
+
+    ok!(Ok::Usernames(usernames))
+}
+
 #[post("/get_channels_in_group_for_user", data = "<group_name>")]
 pub fn get_channels_in_group_for_user(
     group_name: Json<&str>,

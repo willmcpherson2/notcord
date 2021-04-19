@@ -410,8 +410,8 @@ pub fn get_users_in_channel(
     ok!(Ok::Usernames(usernames))
 }
 
-#[post("/get_channels_in_group_for_user", data = "<group_name>")]
-pub fn get_channels_in_group_for_user(
+#[post("/get_channels_in_group", data = "<group_name>")]
+pub fn get_channels_in_group(
     group_name: Json<&str>,
     mut cookies: Cookies,
     database: Database,

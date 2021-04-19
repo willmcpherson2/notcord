@@ -10,6 +10,8 @@
     clippy::match_wildcard_for_single_variants
 )]
 
+use std::path::Path;
+
 #[macro_use]
 extern crate rocket;
 #[macro_use]
@@ -24,6 +26,6 @@ mod response;
 mod routes;
 
 fn main() {
-    util::init_database_file("database.db");
+    util::init_database_file(Path::new("database.db"));
     util::init_rocket(rocket::ignite()).launch();
 }

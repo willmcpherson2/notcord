@@ -31,12 +31,12 @@ Rocket printed to your terminal. It will probably be something like
 localhost:8000
 
 ## Testing-Backend
-
-To run backend testing the test must be run consectively, running them in parrelell will result in errors
      
-     cargo test -- --test-threads=1
+Run the tests:
 
-To run a individual test.
+     cargo test
+
+To run a individual test:
 
     cargo test [test_name]
 

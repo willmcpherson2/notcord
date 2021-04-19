@@ -101,7 +101,8 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 get_avatar,
                 add_group,
                 add_user_to_group,
-                get_users_in_group
+                get_users_in_group,
+                get_groups_for_user,
             ],
         )
 }

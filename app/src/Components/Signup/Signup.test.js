@@ -5,9 +5,9 @@ import {render, fireEvent, cleanup} from '@testing-library/react';
 
 afterEach(cleanup)
 
-// testing a controlled component form.
+// testing state changes when typing into username and password field
 it('Inputting text into username and password field updates the state', () => {
-    const { getByPlaceholderText , getByLabelText } = render(<Signup />);
+    const { getByPlaceholderText } = render(<Signup />);
 
     expect(getByPlaceholderText(/Username/i).textContent).toBe("");
 
@@ -22,5 +22,4 @@ it('Inputting text into username and password field updates the state', () => {
     expect(getByPlaceholderText(/Password/i).textContent).toBeDefined();
 
 })
-
 

@@ -31,8 +31,10 @@ export default class App extends Component {
           return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
         case "createNewGroup":
           return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><CreateNewGroup setView={this.updateView} /></Col></Row></Container>
+        case "settings":
+          return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
         default:
-          return <Login setView={this.updateView} /> 
+          return <Login setView={this.updateView} />
       }
 
     } else {

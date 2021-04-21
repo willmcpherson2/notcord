@@ -27,6 +27,7 @@ pub enum Response {
 #[derive(Serialize)]
 pub enum Ok {
     Ok,
+    Username(String),
     Usernames(Vec<String>),
     Groups(Vec<String>),
     Channels(Vec<String>),
@@ -52,6 +53,7 @@ impl<'r> Responder<'r> for Response {
     fn respond_to(self, request: &Request) -> response::Result<'r> {
         match self {
             Response::Ok(ok) => match ok {
+                Ok::Username(username) => Json(username).respond_to(request),
                 Ok::Usernames(usernames) => Json(usernames).respond_to(request),
                 Ok::Groups(groups) => Json(groups).respond_to(request),
                 Ok::Channels(channels) => Json(channels).respond_to(request),

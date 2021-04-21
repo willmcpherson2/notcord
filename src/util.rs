@@ -114,6 +114,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 files,
                 signup,
                 login,
+                get_username,
                 set_avatar,
                 get_avatar,
                 add_group,

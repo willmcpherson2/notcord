@@ -15,7 +15,7 @@ export default class Login extends Component {
     const { username, password } = this.state;
 
 
-      fetch('http://localhost:8000/login', {
+      fetch(process.env.REACT_APP_API_URL + '/login', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',

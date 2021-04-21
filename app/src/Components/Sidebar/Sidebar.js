@@ -29,7 +29,7 @@ export default class Sidebar extends Component {
 
 
           <Button onClick={this.createGroup}>Create New Group</Button>
-          <Button onClick={this.Settings}>Settings</Button>
+          <Button onClick={this.settings}>Settings</Button>
       </Container>
     );
   }

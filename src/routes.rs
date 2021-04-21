@@ -88,6 +88,20 @@ pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Re
     ok!()
 }
 
+#[post("/get_username")]
+pub fn get_username(mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let username: String = query_row!(
+        database,
+        "SELECT username FROM users WHERE ROWID=?1",
+        &user_id
+    )
+    .unwrap();
+
+    ok!(Ok::Username(username))
+}
+
 #[post("/set_avatar", format = "image/png", data = "<png>")]
 pub fn set_avatar(png: Data, database: Database, mut cookies: Cookies) -> Response {
     let mut buf = Vec::new();

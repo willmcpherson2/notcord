@@ -22,6 +22,7 @@ export default class CreateNewGroup extends Component {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(name)
       }).then(res =>          
           res.json()

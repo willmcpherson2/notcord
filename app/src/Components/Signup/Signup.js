@@ -33,13 +33,17 @@ export default class Login extends Component {
         })
       })
         //This part gets the response JSON body, and then logs that JSON.
-        .then(res =>
+        .then(res =>{
+
           res.json()
+        }
+          
         )
         .then(res => {
           console.log(res)
         })
     } else {
+      // TODO: create a bootstrap alert
       console.log("PASSWORDS DO NOT MATCH")
     }
 

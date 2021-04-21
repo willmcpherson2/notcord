@@ -16,20 +16,24 @@ export default class CreateNewGroup extends Component {
     const { name} = this.state;
 
       //This will create the group when the backend is set up to do so
-      fetch('http://localhost:8000/createGroup', {
+      fetch(process.env.REACT_APP_API_URL + '/add_group', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: name,
-        })
-      }).then(res =>
+        body: JSON.stringify(name)
+      }).then(res =>          
           res.json()
       ).then(res => {
+        console.log(res)
         if (res === "Ok") {
           this.props.setView("dashboard")
+        } else if (res === "GroupAlreadyExists") {
+          console.log("GROUP ALREADY EXISTS")
+          // TODO: create bootstrap alert for this
+        } else {
+          console.log(res)
         }
       })
   }
@@ -51,7 +55,7 @@ export default class CreateNewGroup extends Component {
               <Form.Label>Group Name</Form.Label>
               <Form.Control type="text" onChange={this.handleNameChange}/>
             </Form.Group>
-            <Button type="submit">Create Group</Button>
+            <Button onClick={this.handleSubmit}>Create Group</Button>
           </Form>
         </Row>
       </Container>

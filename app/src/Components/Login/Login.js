@@ -28,8 +28,13 @@ export default class Login extends Component {
       }).then(res =>
           res.json()
       ).then(res => {
+        // TODO: create bootstrap alert for errors / success
+        // TODO: setup a delay for the success message
         if (res === "Ok") {
+          console.log(res)
           this.props.setView("dashboard")
+        } else {
+          console.log(res)
         }
       })
   }

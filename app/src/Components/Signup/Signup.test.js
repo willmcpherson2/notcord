@@ -7,7 +7,7 @@ afterEach(cleanup)
 
 describe('Testing Signup Page input', () => {
     test('Inputting text into username and password field updates the state', () => {
-        const { getByPlaceholderText, getByLabelText } = render(<Signup />);
+        const { getByPlaceholderText } = render(<Signup />);
 
         const usernameInputField = getByPlaceholderText(/Username/i);
         const passwordInputField = getByPlaceholderText(/Password/i);

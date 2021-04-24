@@ -80,6 +80,13 @@ pub fn init_database_file(path: &Path) {
                 FOREIGN KEY (user_id) REFERENCES users (ROWID) ON DELETE CASCADE,
                 FOREIGN KEY (group_id) REFERENCES groups (ROWID) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS group_invites (
+                user_id INTEGER NOT NULL,
+                group_id INTEGER NOT NULL,
+                PRIMARY KEY (user_id, group_id),
+                FOREIGN KEY (user_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (group_id) REFERENCES groups (ROWID) ON DELETE CASCADE
+            );
             CREATE TABLE IF NOT EXISTS channels (
                 name TEXT NOT NULL
             );
@@ -96,7 +103,15 @@ pub fn init_database_file(path: &Path) {
                 PRIMARY KEY (user_id, channel_id),
                 FOREIGN KEY (user_id) REFERENCES users (ROWID) ON DELETE CASCADE,
                 FOREIGN KEY (channel_id) REFERENCES channels (ROWID) ON DELETE CASCADE
-            )",
+            );
+            CREATE TABLE IF NOT EXISTS messages (
+                user_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (ROWID),
+                FOREIGN KEY (channel_id) REFERENCES channels (ROWID) ON DELETE CASCADE
+            );",
         )
         .expect("bug: failed to create sqlite tables");
 }
@@ -122,13 +137,17 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             set_avatar,
             get_avatar,
             add_group,
-            add_user_to_group,
+            invite_user_to_group,
+            get_invites,
+            accept_invite,
             get_users_in_group,
             add_channel_to_group,
             add_user_to_channel,
             get_groups_for_user,
             get_channels_in_group,
             get_users_in_channel,
+            send_message,
+            get_messages,
         ],
     )
 }

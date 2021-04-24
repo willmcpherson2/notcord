@@ -4,6 +4,7 @@ import Login from './Components/Login/Login';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Signup from './Components/Signup/Signup'
 import Settings from './Components/Settings/Settings';
+import CreateNewGroup from './Components/Group/CreateNewGroup';
 
 export default class App extends Component {
   constructor(props) {
@@ -28,8 +29,12 @@ export default class App extends Component {
           return <Signup setView={this.updateView} />
         case "dashboard":
           return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
+        case "createNewGroup":
+          return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><CreateNewGroup setView={this.updateView} /></Col></Row></Container>
+        case "settings":
+          return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
         default:
-          return <Login setView={this.updateView} /> 
+          return <Login setView={this.updateView} />
       }
 
     } else {

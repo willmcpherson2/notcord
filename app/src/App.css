@@ -11,6 +11,7 @@
 /*CSS For the Login Page*/
 .Login {
   margin-top: 25vh;
+  font-family: 'Ubuntu', sans-serif;
 }
 
 .Login .text-muted button {
@@ -53,7 +54,7 @@
   border-radius: 10em;
 }
 
-/*CSS For Settings Screen*/
-.settings {
+/*CSS For Settings' Screen*/
+.topPad {
   padding-top: 50px;
 }

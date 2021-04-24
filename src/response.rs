@@ -1,3 +1,4 @@
+use crate::routes::Message;
 use rocket::request::Request;
 use rocket::response::{self, Responder};
 use rocket_contrib::json::Json;
@@ -31,6 +32,7 @@ pub enum Ok {
     Usernames(Vec<String>),
     Groups(Vec<String>),
     Channels(Vec<String>),
+    Messages(Vec<Message>),
 }
 
 #[derive(Serialize)]
@@ -45,6 +47,7 @@ pub enum Err {
     GroupAlreadyExists,
     ChannelAlreadyExists,
     ChannelDoesNotExist,
+    InviteDoesNotExist,
     NotLoggedIn,
     PermissionDenied,
 }
@@ -57,6 +60,7 @@ impl<'r> Responder<'r> for Response {
                 Ok::Usernames(usernames) => Json(usernames).respond_to(request),
                 Ok::Groups(groups) => Json(groups).respond_to(request),
                 Ok::Channels(channels) => Json(channels).respond_to(request),
+                Ok::Messages(messages) => Json(messages).respond_to(request),
                 _ => Json(ok).respond_to(request),
             },
             Response::Err(err) => Json(err).respond_to(request),

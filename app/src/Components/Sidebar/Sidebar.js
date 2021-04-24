@@ -2,6 +2,7 @@ import { Component } from 'react';
 import {Button, Container} from 'react-bootstrap';
 import '../../App.css'
 import Logo from '../../notcord.png'
+import CreateNewGroup from '../Group/CreateNewGroup';
 
 export default class Sidebar extends Component {
 
@@ -10,6 +11,9 @@ export default class Sidebar extends Component {
   }
   settings = () => {
     this.props.setView("settings");
+  }
+  createGroup = () => {
+    this.props.setView("createNewGroup");
   }
 
   render() {  
@@ -24,8 +28,8 @@ export default class Sidebar extends Component {
 
 
 
-          <Button>Create New Group</Button>
-          <Button onClick={this.Settings}>Settings</Button>
+          <Button onClick={this.createGroup}>Create New Group</Button>
+          <Button onClick={this.settings}>Settings</Button>
       </Container>
     );
   }

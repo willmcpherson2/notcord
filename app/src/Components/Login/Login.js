@@ -21,6 +21,7 @@ export default class Login extends Component {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: username,
           password: password
@@ -28,9 +29,13 @@ export default class Login extends Component {
       }).then(res =>
           res.json()
       ).then(res => {
-        console.log(res.status)
+        // TODO: create bootstrap alert for errors / success
+        // TODO: setup a delay for the success message
         if (res === "Ok") {
+          console.log(res)
           this.props.setView("dashboard")
+        } else {
+          console.log(res)
         }
       })
   }

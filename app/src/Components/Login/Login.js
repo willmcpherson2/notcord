@@ -21,6 +21,7 @@ export default class Login extends Component {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: username,
           password: password

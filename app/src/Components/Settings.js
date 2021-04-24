@@ -6,10 +6,22 @@ export default class Settings extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: '',
-      password: ''
+      username: 'default'
     }
   }
+
+  // TODO: Move this into the sidebar, this gets the username
+  /*
+  hasClicked = () => {
+    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+      method: 'POST',
+      credentials: 'include'
+    }).then(res =>
+      res.json()
+  ).then(res => {
+    this.setState({username: res})
+    })
+  }*/
 
 
 

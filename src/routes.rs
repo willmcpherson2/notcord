@@ -143,8 +143,8 @@ pub fn add_group(name: Json<&str>, database: Database, mut cookies: Cookies) -> 
     ok!()
 }
 
-#[post("/add_user_to_group", data = "<user_and_group>")]
-pub fn add_user_to_group(
+#[post("/invite_user_to_group", data = "<user_and_group>")]
+pub fn invite_user_to_group(
     user_and_group: Json<UserAndGroup>,
     database: Database,
     mut cookies: Cookies,
@@ -187,10 +187,58 @@ pub fn add_user_to_group(
 
     execute!(
         database,
+        "INSERT INTO group_invites (user_id, group_id) VALUES (?1, ?2)",
+        &user_id,
+        &group_id
+    );
+    ok!()
+}
+
+#[post("/get_invites")]
+pub fn get_invites(mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let groups = query_rows!(
+        database,
+        "SELECT groups.name FROM groups JOIN group_invites ON groups.ROWID = group_invites.group_id WHERE group_invites.user_id=?1",
+        &user_id
+    );
+
+    ok!(Ok::Groups(groups))
+}
+
+#[post("/accept_invite", data = "<group_name>")]
+pub fn accept_invite(group_name: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &group_name.into_inner()
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let invite_id: i64 = query_row!(
+        database,
+        "SELECT group_invites.ROWID FROM groups JOIN group_invites ON groups.ROWID = group_invites.group_id WHERE group_invites.user_id=?1 AND group_invites.group_id=?2",
+        &user_id,
+        &group_id
+    )
+    .map_err(|_| Err::InviteDoesNotExist)?;
+
+    execute!(
+        database,
         "INSERT INTO group_members (user_id, group_id, is_admin) VALUES (?1, ?2, 0)",
         &user_id,
         &group_id
     );
+
+    execute!(
+        database,
+        "DELETE FROM group_invites WHERE ROWID=?1",
+        &invite_id
+    );
+
     ok!()
 }
 

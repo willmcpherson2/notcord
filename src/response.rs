@@ -44,6 +44,7 @@ pub enum Err {
     GroupAlreadyExists,
     ChannelAlreadyExists,
     ChannelDoesNotExist,
+    InviteDoesNotExist,
     NotLoggedIn,
     PermissionDenied,
 }

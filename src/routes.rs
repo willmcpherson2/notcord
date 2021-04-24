@@ -5,7 +5,7 @@ use rocket::http::{ContentType, Cookie, Cookies};
 use rocket::response::{Content, NamedFile};
 use rocket::Data;
 use rocket_contrib::json::Json;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
@@ -32,6 +32,20 @@ pub struct UserAndGroup {
 pub struct Login {
     username: String,
     password: String,
+}
+
+#[derive(Deserialize)]
+pub struct GroupChannelMessage {
+    group_name: String,
+    channel_name: String,
+    message: String,
+}
+
+#[derive(Serialize)]
+pub struct Message {
+    message: String,
+    time: String,
+    username: String,
 }
 
 #[get("/")]
@@ -498,4 +512,120 @@ pub fn get_channels_in_group(
     );
 
     ok!(Ok::Channels(channels))
+}
+
+#[post("/send_message", data = "<group_channel_message>")]
+pub fn send_message(
+    group_channel_message: Json<GroupChannelMessage>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &group_channel_message.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channels.ROWID FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &group_channel_message.channel_name,
+        &group_id
+    )
+    .map_err(|_| Err::ChannelDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let user_in_channel = exists!(
+        database,
+        "SELECT * FROM channel_members WHERE user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+    if !user_in_channel {
+        return err!(Err::UserNotInChannel);
+    }
+
+    let message = group_channel_message.into_inner().message;
+
+    execute!(
+        database,
+        "INSERT INTO messages (user_id, channel_id, message) VALUES (?1, ?2, ?3)",
+        &user_id,
+        &channel_id,
+        &message
+    );
+    ok!()
+}
+
+#[post("/get_messages", data = "<channel_and_group>")]
+pub fn get_messages(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &channel_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channels.ROWID FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &channel_and_group.channel_name,
+        &group_id
+    )
+    .map_err(|_| Err::ChannelDoesNotExist)?;
+
+    let user_in_channel = exists!(
+        database,
+        "SELECT * FROM channel_members WHERE user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+    if !user_in_channel {
+        return err!(Err::UserNotInChannel);
+    }
+
+    let messages: Vec<Message> = query_rows!(
+        database,
+        |row| Message {
+            message: row.get(0),
+            time: row.get(1),
+            username: row.get(2)
+        },
+        "SELECT messages.message, messages.time, users.username
+        FROM messages
+        JOIN users
+        ON messages.user_id = users.ROWID
+        WHERE channel_id=?1",
+        &channel_id
+    );
+
+    ok!(Ok::Messages(messages))
 }

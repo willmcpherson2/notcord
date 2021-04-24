@@ -104,29 +104,33 @@ pub fn init_database_file(path: &Path) {
 pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
     use crate::routes::*;
 
-    rocket
-        .attach(Database::fairing())
-        .attach(rocket_cors::CorsOptions::default().to_cors().unwrap())
-        .mount(
-            "/",
-            routes![
-                index,
-                files,
-                signup,
-                login,
-                get_username,
-                set_avatar,
-                get_avatar,
-                add_group,
-                add_user_to_group,
-                get_users_in_group,
-                add_channel_to_group,
-                add_user_to_channel,
-                get_groups_for_user,
-                get_channels_in_group,
-                get_users_in_channel,
-            ],
-        )
+    let cors = rocket_cors::CorsOptions {
+        allow_credentials: true,
+        ..rocket_cors::CorsOptions::default()
+    }
+    .to_cors()
+    .unwrap();
+
+    rocket.attach(Database::fairing()).attach(cors).mount(
+        "/",
+        routes![
+            index,
+            files,
+            signup,
+            login,
+            get_username,
+            set_avatar,
+            get_avatar,
+            add_group,
+            add_user_to_group,
+            get_users_in_group,
+            add_channel_to_group,
+            add_user_to_channel,
+            get_groups_for_user,
+            get_channels_in_group,
+            get_users_in_channel,
+        ],
+    )
 }
 
 pub fn get_logged_in_user_id(cookies: &mut Cookies) -> Result<i64, Err> {

@@ -142,6 +142,61 @@ fn login_success() {
 }
 
 #[test]
+fn get_username_success() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",)
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"username\":\"test_user01\",   
+                \"password\":\"test_hash01\"
+            }",)
+        .dispatch();
+
+    let message = client.post("/get_username").header(ContentType::JSON);
+    let mut response = message.dispatch();
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string("test_user01").unwrap())
+    );
+}
+
+#[test]
+fn get_username_not_logged_in() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",)
+        .dispatch();
+
+    let message = client.post("/get_username").header(ContentType::JSON);
+    let mut response = message.dispatch();
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap())
+    );
+}
+
+#[test]
 fn add_group_not_logged_in() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");

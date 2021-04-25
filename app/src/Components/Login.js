@@ -40,6 +40,7 @@ export default class Login extends Component {
         // TODO: setup a delay for the success message
         if (res === "Ok") {
           console.log(res)
+          this.props.loggedIn(true)
           this.props.setView("dashboard")
         } else {
           console.log(res)

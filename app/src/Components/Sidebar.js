@@ -38,7 +38,7 @@ export default class Sidebar extends Component {
               delay={{ show: 400, hide: 0 }}
               overlay={renderTooltip}
             >
-              <Button className="groupButton" variant="info">{letter}</Button>
+              <Button className="groupButton" variant="info" onClick={() => {this.handleSubmit(val)}}>{letter}</Button>
             </OverlayTrigger>
             
           </Row>
@@ -47,12 +47,19 @@ export default class Sidebar extends Component {
     )
   }
 
+  handleSubmit = (e) => {
+    this.props.group(e)
+    this.props.setView("group")
+  }
+
   dashboard = () => {
     this.props.setView("dashboard");
   }
   settings = () => {
     this.props.setView("settings");
   }
+
+  // TODO: Change this to a modal
   createGroup = () => {
     this.props.setView("createNewGroup");
   }
@@ -63,11 +70,11 @@ export default class Sidebar extends Component {
           <img src={Logo} alt="Notcord Logo" className="image" onClick={this.dashboard}></img>
           <hr className="hozLine"/>
 
-          {/**This group of buttons will be dynamic depending on the groups */}
+          {/** TODO: Fix the design of these */}
           {this.renderGroups()}
           <br/> <br/>
-          <Button onClick={this.createGroup} variant="light">Create New Group</Button>
-          <Button onClick={this.settings}>Settings</Button>
+          <Button onClick={this.createGroup} variant="light">New</Button>
+          <Button onClick={this.settings}>Set</Button>
       </Container>
     );
   }

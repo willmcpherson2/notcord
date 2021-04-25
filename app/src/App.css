@@ -50,6 +50,7 @@
 /*CSS For the Sidebar*/
 .sidebarPadding {
   margin-left: -30px;
+  z-index: 500;
 }
 
 .sidebar {
@@ -64,6 +65,7 @@
   margin-left: -8px;
   padding: 8px 0px 0px 0px;
   cursor: pointer;
+  
 }
 
 .sidebar .image:hover {
@@ -86,4 +88,14 @@
 /*CSS For Settings' Screen*/
 .topPad {
   padding-top: 50px;
+}
+
+
+
+
+/*CSS For Group Screen*/
+.navbar {
+  background-color: #eeeeee;
+  margin-left: -30px;
+  z-index: 100;
 }

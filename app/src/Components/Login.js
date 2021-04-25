@@ -1,18 +1,25 @@
 import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col } from 'react-bootstrap';
-import Logo from '../../notcord.png';
-import '../../App.css'
+import Logo from '../notcord.png';
+import '../App.css'
+
+let loaderWheel = "loader noDisplay"
+let loaderButton = "LoginButton"
 export default class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
       username: '',
-      password: ''
+      password: '',
+      shouldShowButton: true,
+      test: true
     }
   }
 
   handleSubmit = (e) => {
     const { username, password } = this.state;
+    this.setState({shouldShowButton: false}, () => {
+      console.log("Showing Button: " + this.state.shouldShowButton);
 
 
       fetch(process.env.REACT_APP_API_URL + '/login', {
@@ -38,6 +45,8 @@ export default class Login extends Component {
           console.log(res)
         }
       })
+
+    })
   }
 
 
@@ -75,9 +84,13 @@ export default class Login extends Component {
             <Form.Group controlId="formPassword">
               <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
             </Form.Group>
-            <Col className="offset-3"><Button varient="primary" onClick={this.handleSubmit}>Login</Button></Col>
+            <Col className="offset-3">
+            <Button varient="primary" onClick={this.handleSubmit} className={ this.state.shouldShowButton ? '' : 'noDisplay' }>Login</Button>
+            <div className={ this.state.shouldShowButton ? 'noDisplay' : 'loader'}></div>
+           
+            </Col>
+            
           </Form>
-
         </Row>
       </Container>
     );

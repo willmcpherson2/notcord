@@ -1,7 +1,7 @@
 import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col } from 'react-bootstrap';
-import Logo from '../../notcord.png';
-import '../../App.css'
+import Logo from '../notcord.png';
+import '../App.css'
 
 export default class CreateNewGroup extends Component {
   constructor(props){

@@ -1,10 +1,24 @@
 import { Component } from 'react';
 import {Button, Container} from 'react-bootstrap';
-import '../../App.css'
-import Logo from '../../notcord.png'
-import CreateNewGroup from '../Group/CreateNewGroup';
+import '../App.css'
+import Logo from '../notcord.png'
+import CreateNewGroup from './CreateNewGroup';
 
 export default class Sidebar extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      groups: []
+    }
+  }
+
+  componentDidMount() {
+    fetch(process.env.REACT_APP_API_URL + '/get_groups_for_user', {method: 'POST', credentials: 'include'})
+    .then(res => res.json())
+    .then(res => {
+      console.log(res)
+    });
+  }
 
   dashboard = () => {
     this.props.setView("dashboard");

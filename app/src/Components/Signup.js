@@ -1,7 +1,7 @@
 import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col } from 'react-bootstrap';
-import Logo from '../../notcord.png';
-import '../../App.css'
+import Logo from '../notcord.png';
+import '../App.css'
 
 //Sets the encryption that uses bcrypt. The salt rounds can be changed but will be left at 10 for this purpose.
 export default class Login extends Component {

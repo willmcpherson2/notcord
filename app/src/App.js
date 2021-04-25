@@ -1,10 +1,10 @@
 import { Container, Row, Col } from 'react-bootstrap';
 import React, { Component } from 'react';
-import Login from './Components/Login/Login';
-import Sidebar from './Components/Sidebar/Sidebar';
-import Signup from './Components/Signup/Signup'
-import Settings from './Components/Settings/Settings';
-import CreateNewGroup from './Components/Group/CreateNewGroup';
+import Login from './Components/Login';
+import Sidebar from './Components/Sidebar';
+import Signup from './Components/Signup'
+import Settings from './Components/Settings';
+import CreateNewGroup from './Components/CreateNewGroup';
 
 export default class App extends Component {
   constructor(props) {

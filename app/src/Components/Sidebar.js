@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import {Button, Container} from 'react-bootstrap';
+import {Button, Container, Row, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import '../App.css'
 import Logo from '../notcord.png'
 import CreateNewGroup from './CreateNewGroup';
@@ -17,7 +17,34 @@ export default class Sidebar extends Component {
     .then(res => res.json())
     .then(res => {
       console.log(res)
+      this.setState({ groups: [...this.state.groups, ...res] })
     });
+  }
+
+  renderGroups(){
+    
+    return (
+      this.state.groups.map((val, key) => {
+        let letter = val.charAt(0);
+        const renderTooltip = (props) => (
+          <Tooltip id="button-tooltip" {...props}>
+            {val}
+          </Tooltip>
+        );
+        return (
+          <Row key={key}>
+            <OverlayTrigger
+              placement="right"
+              delay={{ show: 400, hide: 0 }}
+              overlay={renderTooltip}
+            >
+              <Button className="groupButton" variant="info">{letter}</Button>
+            </OverlayTrigger>
+            
+          </Row>
+        )
+      })
+    )
   }
 
   dashboard = () => {
@@ -37,12 +64,9 @@ export default class Sidebar extends Component {
           <hr className="hozLine"/>
 
           {/**This group of buttons will be dynamic depending on the groups */}
-          <Button>Group 1</Button>
-          <Button>Group 2</Button>
-
-
-
-          <Button onClick={this.createGroup}>Create New Group</Button>
+          {this.renderGroups()}
+          <br/> <br/>
+          <Button onClick={this.createGroup} variant="light">Create New Group</Button>
           <Button onClick={this.settings}>Settings</Button>
       </Container>
     );

@@ -32,8 +32,15 @@ export default class Group extends Component {
 
           {/**NAVIGATION BAR */}
           <Col xs={3} className="navbar">
-          <h1>{this.props.group}</h1>
+          <Container>
+            <Row className="max">
+            <h1>{this.props.group}</h1>
+          </Row>
+          <Row>
           <Button>Create New Channel</Button>
+          </Row></Container>
+          
+          
           </Col>
 
 

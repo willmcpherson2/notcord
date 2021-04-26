@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Form, Row, Col } from 'react-bootstrap';
+import { Button, Container, Form, Row, Col} from 'react-bootstrap';
 import Logo from '../notcord.png';
 import '../App.css'
 
@@ -64,7 +64,7 @@ export default class Login extends Component {
   }
 
 
-
+  // TODO: Allow users to login and signup using their email address
   render() {
     return (
       <Container className="Login">
@@ -93,6 +93,9 @@ export default class Login extends Component {
             
           </Form>
         </Row>
+        <Row>
+          {/** TODO: Move this to an appropriate location. Make website not the webapp. URL: app.notcord.com, and privacy policy will be at notcord.com/privacy */}
+          <a href='http://localhost:3000/privacy.html' target="_blank">Privacy Policy</a></Row>
       </Container>
     );
   }

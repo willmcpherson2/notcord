@@ -4,7 +4,6 @@ import Login from './Components/Login';
 import Sidebar from './Components/Sidebar';
 import Signup from './Components/Signup'
 import Settings from './Components/Settings';
-import CreateNewGroup from './Components/CreateNewGroup';
 import Group from './Components/Group';
 
 export default class App extends Component {
@@ -66,8 +65,6 @@ renderComponents() {
 
       case "dashboard":
         return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
-      case "createNewGroup":
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><CreateNewGroup setView={this.updateView} /></Col></Row></Container>
       case "settings":
         return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
       case "group":

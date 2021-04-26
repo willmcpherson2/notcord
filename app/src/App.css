@@ -1,5 +1,10 @@
+.privacyPolicy {
+  font-family: 'Ubuntu', sans-serif;
+}
+
 .App{
   border: 2px solid black;
+  font-family: 'Ubuntu', sans-serif;
 }
 
 .nopadding {
@@ -98,4 +103,10 @@
   background-color: #eeeeee;
   margin-left: -30px;
   z-index: 100;
+  font-family: 'Ubuntu', sans-serif;
+  height: 100vh;
+}
+
+.navbar .max {
+  width: 100vw;
 }

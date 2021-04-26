@@ -379,6 +379,14 @@ pub fn add_channel_to_group(
         &channel_id,
         &group_id
     );
+
+    execute!(
+        database,
+        "INSERT INTO channel_members (user_id, channel_id) VALUES (?1, ?2)",
+        &admin_id,
+        &channel_id
+    );
+
     ok!()
 }
 

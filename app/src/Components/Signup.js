@@ -88,7 +88,7 @@ export default class Login extends Component {
               <Form.Control type="text" placeholder="Username" value={this.state.username} onChange={this.handleUserChange}></Form.Control>
             </Form.Group>
             <Form.Group controlId="formPassword">
-              <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
+              <Form.Control type="password" placeholder="Passwords" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
             </Form.Group>
             <Form.Group controlId="formPasswordConfirm">
               <Form.Control type="password" placeholder="Password Confirm" value={this.state.passConfirm} onChange={this.handlePassConfirmChange}></Form.Control>

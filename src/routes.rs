@@ -213,6 +213,16 @@ pub fn invite_user_to_group(
         return err!(Err::UserAlreadyInGroup);
     }
 
+    let user_already_invited = exists!(
+        database,
+        "SELECT * FROM group_invites WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if user_already_invited {
+        return err!(Err::UserAlreadyInvited);
+    }
+
     execute!(
         database,
         "INSERT INTO group_invites (user_id, group_id) VALUES (?1, ?2)",

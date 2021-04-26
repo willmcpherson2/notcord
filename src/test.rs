@@ -402,7 +402,7 @@ fn invite_user_to_group_already_in_group() {
 
     assert_eq!(
         response.body_string(), 
-        Some(serde_json::to_string(&Err::UserAlreadyInGroup).unwrap()));
+        Some(serde_json::to_string(&Err::UserAlreadyInvited).unwrap()));
 }
 
 #[test]

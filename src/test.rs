@@ -6,23 +6,37 @@ use rocket::local::Client;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Once;
 
-static DATABASE_NUM: AtomicUsize = AtomicUsize::new(0);
+macro_rules! setup {
+    () => {{
+        // line!() is the line number at the *call* to setup!(), making it unique.
+        let rocket_instance = setup_test_rocket(line!());
+        let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
+        let client = Client::new(rocket_instance).expect("Problem Creating client");
+        (client, test_db)
+    }}
+}
+
+static SETUP: Once = Once::new();
 
 //set up rocket & empty test database
-fn setup_test_rocket() -> rocket::Rocket {
+fn setup_test_rocket(database_num: u32) -> rocket::Rocket {
     let dir = Path::new("test");
-    let database_num = DATABASE_NUM.fetch_add(1, Ordering::SeqCst).to_string();
-    let path = &dir.join(database_num);
+    let path = &dir.join(database_num.to_string());
     let path_str = path.to_str().unwrap();
 
-    if !dir.exists() {
+    // Setup function for tests. This is only run once. Put any setup code in here.
+    SETUP.call_once(|| {
+        // remove the test directory if it exists, then create a new one.
+        if dir.exists() {
+            fs::remove_dir_all(dir).expect("bug: cannot delete old test databases");
+        }
         fs::create_dir(dir).expect("bug: cannot create test database directory");
-    }
-    if path.exists() {
-        fs::remove_file(path).expect("bug: cannot delete old test database");
-    }
+    });
+
+    // The database path is `test/n`, where n is database_num, which is the line number of the call
+    // to setup!().
     util::init_database_file(path);
 
     let mut database_config = HashMap::new();
@@ -42,9 +56,7 @@ fn setup_test_rocket() -> rocket::Rocket {
 //sign up - new user;
 #[test]
 fn signup_new_user() {
-    let rocket_instance = setup_test_rocket();
-    let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
-    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let (client, test_db) = setup!();
     client
         .post("/signup")
         .header(ContentType::JSON)
@@ -70,9 +82,7 @@ fn signup_new_user() {
 //sign up - existing user
 #[test]
 fn signup_existing_user() {
-    let rocket_instance = setup_test_rocket();
-    let test_db = Database::get_one(&rocket_instance).expect("Unable to retrieve database");
-    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let (client, test_db) = setup!();
     test_db
         .execute(
             "INSERT INTO users (username, password_hash, avatar) VALUES (?1, ?2, ?3)",
@@ -99,8 +109,7 @@ fn signup_existing_user() {
 // log in - user does not exist
 #[test]
 fn login_user_not_exist() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let (client, _) = setup!();
     let message = client.post("/login").header(ContentType::JSON).body(
         "{
             \"username\":\"test_user03\",   
@@ -116,8 +125,7 @@ fn login_user_not_exist() {
 
 #[test]
 fn login_success() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let (client, _) = setup!();
     client
         .post("/signup")
         .header(ContentType::JSON)
@@ -143,8 +151,7 @@ fn login_success() {
 
 #[test]
 fn get_username_success() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let (client, _) = setup!();
     
     client
         .post("/signup")
@@ -175,8 +182,7 @@ fn get_username_success() {
 
 #[test]
 fn get_username_not_logged_in() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating client");
+    let (client, _) = setup!();
     
     client
         .post("/signup")
@@ -198,8 +204,7 @@ fn get_username_not_logged_in() {
 
 #[test]
 fn add_group_success() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -234,8 +239,7 @@ fn add_group_success() {
 
 #[test]
 fn add_group_not_logged_in() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     let message = client
         .post("/add_group")
@@ -251,8 +255,7 @@ fn add_group_not_logged_in() {
 
 #[test]
 fn add_group_group_exists() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -292,8 +295,7 @@ fn add_group_group_exists() {
 
 #[test]
 fn invite_user_to_group_success() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -345,8 +347,7 @@ fn invite_user_to_group_success() {
 
 #[test]
 fn invite_user_to_group_already_in_group() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -406,8 +407,7 @@ fn invite_user_to_group_already_in_group() {
 
 #[test]
 fn invite_user_to_group_doesnt_exist() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -450,8 +450,7 @@ fn invite_user_to_group_doesnt_exist() {
 
 #[test]
 fn invite_user_to_group_not_admin() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -512,8 +511,7 @@ fn invite_user_to_group_not_admin() {
 
 #[test]
 fn invite_user_to_group_group_doesnt_exist() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)
@@ -559,8 +557,7 @@ fn invite_user_to_group_group_doesnt_exist() {
 
 #[test]
 fn invite_user_to_group_not_logged_in() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+    let (client, _) = setup!();
 
     client.post("/signup")
         .header(ContentType::JSON)

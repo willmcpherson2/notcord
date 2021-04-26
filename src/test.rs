@@ -197,23 +197,6 @@ fn get_username_not_logged_in() {
 }
 
 #[test]
-fn add_group_not_logged_in() {
-    let rocket_instance = setup_test_rocket();
-    let client = Client::new(rocket_instance).expect("Problem Creating Client");
-
-    let message = client
-        .post("/add_group")
-        .header(ContentType::JSON)
-        .body("\"test_group01\"");
-
-    let mut response = message.dispatch();
-
-    assert_eq!(
-        response.body_string(), 
-        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
-}
-
-#[test]
 fn add_group_success() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
@@ -247,6 +230,23 @@ fn add_group_success() {
     assert_eq!(
         response.body_string(), 
         Some(serde_json::to_string(&Ok::Ok).unwrap()));
+}
+
+#[test]
+fn add_group_not_logged_in() {
+    let rocket_instance = setup_test_rocket();
+    let client = Client::new(rocket_instance).expect("Problem Creating Client");
+
+    let message = client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
 }
 
 #[test]
@@ -291,7 +291,7 @@ fn add_group_group_exists() {
 }
 
 #[test]
-fn add_user_to_group_success() {
+fn invite_user_to_group_success() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
 
@@ -329,7 +329,7 @@ fn add_user_to_group_success() {
         .dispatch();
 
     let message = client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",
@@ -344,7 +344,7 @@ fn add_user_to_group_success() {
 }
 
 #[test]
-fn add_user_to_group_already_in_group() {
+fn invite_user_to_group_already_in_group() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
 
@@ -381,7 +381,7 @@ fn add_user_to_group_already_in_group() {
         .body("\"test_group01\"")
         .dispatch();
     client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",
@@ -390,7 +390,7 @@ fn add_user_to_group_already_in_group() {
         .dispatch();
 
     let message = client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",
@@ -405,7 +405,7 @@ fn add_user_to_group_already_in_group() {
 }
 
 #[test]
-fn add_user_to_group_user_doesnt_exist() {
+fn invite_user_to_group_doesnt_exist() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
 
@@ -434,7 +434,7 @@ fn add_user_to_group_user_doesnt_exist() {
         .dispatch();
 
     let message = client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",
@@ -449,7 +449,7 @@ fn add_user_to_group_user_doesnt_exist() {
 }
 
 #[test]
-fn add_user_to_group_not_admin() {
+fn invite_user_to_group_not_admin() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
 
@@ -494,17 +494,9 @@ fn add_user_to_group_not_admin() {
         }",
         )
         .dispatch();
-    client
-        .post("/add_user_to_group")
-        .header(ContentType::JSON)
-        .body(  "{
-                    \"username\":\"test_user02\",
-                    \"group_name\":\"test_group01\"
-                }",)
-        .dispatch();
 
     let message = client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",
@@ -519,7 +511,7 @@ fn add_user_to_group_not_admin() {
 }
 
 #[test]
-fn add_user_to_group_group_doesnt_exist() {
+fn invite_user_to_group_group_doesnt_exist() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
 
@@ -551,7 +543,7 @@ fn add_user_to_group_group_doesnt_exist() {
         )
         .dispatch();
     let message = client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",
@@ -566,7 +558,7 @@ fn add_user_to_group_group_doesnt_exist() {
 }
 
 #[test]
-fn add_user_to_group_not_logged_in() {
+fn invite_user_to_group_not_logged_in() {
     let rocket_instance = setup_test_rocket();
     let client = Client::new(rocket_instance).expect("Problem Creating Client");
 
@@ -590,7 +582,7 @@ fn add_user_to_group_not_logged_in() {
         .dispatch();
 
     let message = client
-        .post("/add_user_to_group")
+        .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(  "{
                     \"username\":\"test_user02\",

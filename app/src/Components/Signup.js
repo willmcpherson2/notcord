@@ -1,7 +1,7 @@
 import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col } from 'react-bootstrap';
-import Logo from '../../notcord.png';
-import '../../App.css'
+import Logo from '../notcord.png';
+import '../App.css'
 
 //Sets the encryption that uses bcrypt. The salt rounds can be changed but will be left at 10 for this purpose.
 export default class Login extends Component {
@@ -9,33 +9,43 @@ export default class Login extends Component {
     super(props);
     this.state = {
       username: '',
-      password: ''
+      password: '',
+      passConfirm: '',
     }
   }
 
 
   handleSubmit = (e) => {
-    const { username, password } = this.state;
+    const { username, password, passConfirm } = this.state;
 
-    //This then posts the json of the username and password
-    fetch('http://localhost:8000/signup', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: username,
-        password: password
+    if (password == passConfirm) {
+
+      //This then posts the json of the username and password
+      fetch(process.env.REACT_APP_API_URL + '/signup', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password
+        })
       })
-    })
-      //This part gets the response JSON body, and then logs that JSON.
-      .then(res =>
+        //This part gets the response JSON body, and then logs that JSON.
+        .then(res =>{
+
           res.json()
-      )
-      .then(res => {
-        console.log(res)
-      })
+        }
+          
+        )
+        .then(res => {
+          console.log(res)
+        })
+    } else {
+      // TODO: create a bootstrap alert
+      console.log("PASSWORDS DO NOT MATCH")
+    }
 
 
 
@@ -48,6 +58,10 @@ export default class Login extends Component {
 
   handlePassChange = (e) => {
     this.setState({ password: e.target.value })
+  }
+
+  handlePassConfirmChange = (e) => {
+    this.setState({ passConfirm: e.target.value })
   }
 
   login = () => {
@@ -75,6 +89,9 @@ export default class Login extends Component {
             </Form.Group>
             <Form.Group controlId="formPassword">
               <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
+            </Form.Group>
+            <Form.Group controlId="formPasswordConfirm">
+              <Form.Control type="password" placeholder="Password Confirm" value={this.state.passConfirm} onChange={this.handlePassConfirmChange}></Form.Control>
             </Form.Group>
             <Col className="justify-content-md-center"><Button varient="primary" onClick={this.handleSubmit}>Register</Button></Col>
           </Form>

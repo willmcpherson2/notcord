@@ -1,26 +1,34 @@
 import { React, Component } from 'react';
-import { Button, Container, Form, Row, Col } from 'react-bootstrap';
-import Logo from '../../notcord.png';
-import '../../App.css'
+import { Button, Container, Form, Row, Col} from 'react-bootstrap';
+import Logo from '../notcord.png';
+import '../App.css'
+
+let loaderWheel = "loader noDisplay"
+let loaderButton = "LoginButton"
 export default class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
       username: '',
-      password: ''
+      password: '',
+      shouldShowButton: true,
+      test: true
     }
   }
 
   handleSubmit = (e) => {
     const { username, password } = this.state;
+    this.setState({shouldShowButton: false}, () => {
+      console.log("Showing Button: " + this.state.shouldShowButton);
 
 
-      fetch('http://localhost:8000/login', {
+      fetch(process.env.REACT_APP_API_URL + '/login', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: username,
           password: password
@@ -28,11 +36,18 @@ export default class Login extends Component {
       }).then(res =>
           res.json()
       ).then(res => {
-        console.log(res.status)
+        // TODO: create bootstrap alert for errors / success
+        // TODO: setup a delay for the success message
         if (res === "Ok") {
+          console.log(res)
+          this.props.loggedIn(true)
           this.props.setView("dashboard")
+        } else {
+          console.log(res)
         }
       })
+
+    })
   }
 
 
@@ -49,7 +64,7 @@ export default class Login extends Component {
   }
 
 
-
+  // TODO: Allow users to login and signup using their email address
   render() {
     return (
       <Container className="Login">
@@ -70,10 +85,17 @@ export default class Login extends Component {
             <Form.Group controlId="formPassword">
               <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
             </Form.Group>
-            <Col className="offset-3"><Button varient="primary" onClick={this.handleSubmit}>Login</Button></Col>
+            <Col className="offset-3">
+            <Button varient="primary" onClick={this.handleSubmit} className={ this.state.shouldShowButton ? '' : 'noDisplay' }>Login</Button>
+            <div className={ this.state.shouldShowButton ? 'noDisplay' : 'loader'}></div>
+           
+            </Col>
+            
           </Form>
-
         </Row>
+        <Row>
+          {/** TODO: Move this to an appropriate location. Make website not the webapp. URL: app.notcord.com, and privacy policy will be at notcord.com/privacy */}
+          <a href='http://localhost:3000/privacy.html' target="_blank">Privacy Policy</a></Row>
       </Container>
     );
   }

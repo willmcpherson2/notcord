@@ -271,7 +271,9 @@ pub fn accept_invite(group_name: Json<&str>, mut cookies: Cookies, database: Dat
 }
 
 #[post("/get_users_in_group", data = "<name>")]
-pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
+pub fn get_users_in_group(name: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
     let group_id: i64 = query_row!(
         database,
         "SELECT ROWID FROM groups WHERE name=?1",
@@ -279,10 +281,19 @@ pub fn get_users_in_group(name: Json<&str>, database: Database) -> Response {
     )
     .map_err(|_| Err::GroupDoesNotExist)?;
 
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
     let usernames: Vec<String> = query_rows!(
         database,
         "SELECT username FROM users INNER JOIN group_members ON users.ROWID = group_members.user_id WHERE group_id=?1",
-        &group_id,
         &group_id
     );
 

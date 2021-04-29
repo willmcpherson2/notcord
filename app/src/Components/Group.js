@@ -1,6 +1,5 @@
 import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col, Modal } from 'react-bootstrap';
-import Logo from '../notcord.png';
 import '../App.css'
 export default class Group extends Component {
   constructor(props) {
@@ -12,8 +11,9 @@ export default class Group extends Component {
     }
   }
 
+  //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
   componentDidMount() {
-    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.group) })
+    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
       .then(res => res.json())
       .then(res => {
         console.log(res)
@@ -21,14 +21,28 @@ export default class Group extends Component {
       });
   }
 
-  renderChannels() {
+  //This is used every single time the props 'groupName' is updated, so whent the group changes
+  componentDidUpdate(prevProps) {
+    //Checks the groupName current to the previous one last update, if they are not the same, then get the new channels for this new group.
+    if (this.props.groupName !== prevProps.groupName){
+      //Fetches the channels and assigns them to the 'channels' array state.
+      fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
+        .then(res => res.json())
+        .then(res => {
+          console.log(res)
+          this.setState({ channels: [...res] })
+        });
+    }
+  }
 
+  //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
+  // FIXME: Remove rows because of bootstrap react bug with sidebars and div heights
+  renderChannels() {
     return (
       this.state.channels.map((val, key) => {
         return (
           <Row key={key} className="max">
             <Button className="groupButton" variant="link" onClick={() => { this.handleSubmit(val) }}>{val}</Button>
-
           </Row>
         )
       })
@@ -49,7 +63,7 @@ export default class Group extends Component {
       credentials: 'include',
       body: JSON.stringify({
         channel_name: name,
-        group_name: this.props.group
+        group_name: this.props.groupName
       })
     }).then(res =>
       res.json()
@@ -59,7 +73,7 @@ export default class Group extends Component {
         // TODO: Set this to not change the location but update the channels correctly
 
 
-        fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.group) })
+        fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
           .then(res => res.json())
           .then(res => {
             console.log(res)
@@ -83,12 +97,8 @@ export default class Group extends Component {
 
   render() {
     return (
-      <Container fluid>
-        <Row>
-
+      <div>
           {/**NAVIGATION BAR */}
-          <Col xs={3} className="navbar">
-            <Container>
               <Modal show={this.state.show} onHide={() => { this.setState({ show: false }) }}>
                 <Modal.Header closeButton>
                   <Modal.Title>Create New Channel</Modal.Title>
@@ -105,26 +115,11 @@ export default class Group extends Component {
 
                 </Modal.Body>
               </Modal>
-              <Row className="max">
-                <h1>{this.props.group}</h1>
-              </Row>
+                <h1>{this.props.groupName}</h1>
               {this.renderChannels()}
-              <Row>
                 <Button onClick={() => { this.setState({ show: true }) }} variant="light">New Channel</Button>
-              </Row></Container>
 
-
-          </Col>
-
-
-
-          {/**TEXT MESSAGE SECTION */}
-          <Col>
-            <p>Text Messages will go here</p>
-          </Col>
-
-        </Row>
-      </Container>
+                </div>
     );
   }
 }

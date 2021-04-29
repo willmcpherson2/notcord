@@ -21,7 +21,7 @@ export default class Login extends Component {
     this.setState({shouldShowButton: false}, () => {
       console.log("Showing Button: " + this.state.shouldShowButton);
 
-
+      // FEATURE: Allow users to login and signup using their email address
       fetch(process.env.REACT_APP_API_URL + '/login', {
         method: 'POST',
         headers: {
@@ -36,8 +36,8 @@ export default class Login extends Component {
       }).then(res =>
           res.json()
       ).then(res => {
-        // TODO: create bootstrap alert for errors / success
-        // TODO: setup a delay for the success message
+        // FEATURE: create bootstrap alert for errors / success
+        // TODO: setup a delay for the success message loading wheel
         if (res === "Ok") {
           console.log(res)
           this.props.loggedIn(true)
@@ -64,7 +64,7 @@ export default class Login extends Component {
   }
 
 
-  // TODO: Allow users to login and signup using their email address
+
   render() {
     return (
       <Container className="Login">

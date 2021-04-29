@@ -18,7 +18,7 @@ export default class Sidebar extends Component {
       .then(res => res.json())
       .then(res => {
         console.log(res)
-        this.setState({ groups: [...this.state.groups, ...res] })
+        this.setState({ groups: [...res] })
       });
   }
 
@@ -80,11 +80,11 @@ export default class Sidebar extends Component {
           res.json()
       ).then(res => {
         console.log(res)
+        // FEATURE: create bootstrap alert for these
         if (res === "Ok") {
           this.props.setView("dashboard")
-        } else if (res === "GroupAlreadyExists") {
+        } else if (res === "GroupAlreadyExists") {      
           console.log("GROUP ALREADY EXISTS")
-          // TODO: create bootstrap alert for this
         } else {
           console.log(res)
         }
@@ -95,6 +95,7 @@ export default class Sidebar extends Component {
       .then(res => {
         console.log(res)
         this.setState({ groups: [...res] })
+        this.renderGroups();
       });})
       
   }

@@ -43,7 +43,7 @@ export default class Login extends Component {
           console.log(res)
         })
     } else {
-      // TODO: create a bootstrap alert
+      // FEATURE: create a bootstrap alert
       console.log("PASSWORDS DO NOT MATCH")
     }
 

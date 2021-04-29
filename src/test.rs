@@ -592,3 +592,88 @@ fn invite_user_to_group_not_logged_in() {
         response.body_string(), 
         Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
 }
+
+#[test]
+fn get_invites_success() {
+    let (client, _) = setup!();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+    client
+        .post("/invite_user_to_group")
+        .header(ContentType::JSON)
+        .body(  "{
+                    \"username\":\"test_user02\",
+                    \"group_name\":\"test_group01\"
+                }",)
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/get_invites")
+        .header(ContentType::JSON);
+
+    let mut response = message.dispatch();
+
+    assert_ne!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
+}
+
+
+#[test]
+fn get_invites_not_logged_in() {
+    let (client, _) = setup!();
+
+    let message = client
+        .post("/get_invites")
+        .header(ContentType::JSON);
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
+}
+

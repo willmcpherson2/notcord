@@ -106,7 +106,9 @@ export default class Sidebar extends Component {
         <img src={Logo} alt="Notcord Logo" className="image" onClick={this.dashboard}></img>
         <hr className="hozLine" />
 
-        {/** // TODO: Fix the design of these */}
+        {/** // TODO: Fix the design of these 
+         * 
+        */}
         {this.renderGroups()}
         <br /> <br />
         <Button onClick={() => { this.setState({ show: true }) }} variant="light">New</Button>

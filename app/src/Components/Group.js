@@ -7,7 +7,10 @@ export default class Group extends Component {
     this.state = {
       name: 'boop',
       channels: [],
-      show: false
+      show: false,
+      messages: [],
+      currentMessage: '',
+      currentChannel: ''
     }
   }
 
@@ -24,7 +27,7 @@ export default class Group extends Component {
   //This is used every single time the props 'groupName' is updated, so whent the group changes
   componentDidUpdate(prevProps) {
     //Checks the groupName current to the previous one last update, if they are not the same, then get the new channels for this new group.
-    if (this.props.groupName !== prevProps.groupName){
+    if (this.props.groupName !== prevProps.groupName) {
       //Fetches the channels and assigns them to the 'channels' array state.
       fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
         .then(res => res.json())
@@ -36,17 +39,37 @@ export default class Group extends Component {
   }
 
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
-  // FIXME: Remove rows because of bootstrap react bug with sidebars and div heights
   renderChannels() {
     return (
       this.state.channels.map((val, key) => {
         return (
-          <Row key={key} className="max">
-            <Button className="groupButton" variant="link" onClick={() => { this.handleSubmit(val) }}>{val}</Button>
-          </Row>
+          <div key={key} className="max">
+            <button onClick={() => { this.setState({currentChannel: val}, () => this.renderMessages(val) )}}>{val}</button>
+          </div>
         )
       })
     )
+  }
+
+  renderMessages(channel) {
+    fetch(process.env.REACT_APP_API_URL + '/get_messages', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        channel_name: channel,
+        group_name: this.props.groupName
+      })
+    }).then(res =>
+      res.json()
+    ).then(res => {
+        console.log(res)
+        this.setState({messages: res})
+      });
+      //this.setState({ messages: [...res] })
   }
 
 
@@ -70,9 +93,6 @@ export default class Group extends Component {
     ).then(res => {
       console.log(res)
       if (res === "Ok") {
-        // TODO: Set this to not change the location but update the channels correctly
-
-
         fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
           .then(res => res.json())
           .then(res => {
@@ -82,7 +102,7 @@ export default class Group extends Component {
 
       } else if (res === "ChannelAlreadyExists") {
         console.log("CHANNEL ALREADY EXISTS")
-        // TODO: create bootstrap alert for this
+        // FEATURE: create bootstrap alert for this
       } else {
         console.log(res)
       }
@@ -90,36 +110,93 @@ export default class Group extends Component {
 
   }
 
+  sendMessage = (e) => {
+    console.log(this.state.currentMessage)
+    fetch(process.env.REACT_APP_API_URL + '/send_message', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        group_name: this.props.groupName,
+        channel_name: this.state.currentChannel,
+        message: this.state.currentMessage
+      })
+    }).then(res =>
+      res.json()
+    ).then(res => {
+      console.log(res)
+    })
+  }
+
   handleNameChange = (e) => {
     this.setState({ name: e.target.value })
+  }
+
+  handleMessageChange = (e) => {
+    this.setState({ currentMessage: e.target.value })
+  }
+
+  renderItems() {
+    return (
+      this.state.messages.map((val, key) => {
+        return (
+            <p key={key}><span>({val.time})</span> {val.username}: {val.message}</p>
+        )
+      })
+    )
+    return this.state.messages.map(message => {
+      <p key={message.time}>{message.message}33</p>;
+    });
   }
 
 
   render() {
     return (
-      <div>
-          {/**NAVIGATION BAR */}
-              <Modal show={this.state.show} onHide={() => { this.setState({ show: false }) }}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Create New Channel</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+      <div className="group">
+        {/**NAVIGATION BAR */}
+        <Modal show={this.state.show} onHide={() => { this.setState({ show: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Create New Channel</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
 
-                  <Form>
-                    <Form.Group>
-                      <Form.Label>Channel Name</Form.Label>
-                      <Form.Control type="text" onChange={this.handleNameChange} />
-                    </Form.Group>
-                    <Button onClick={this.createChannel}>Create Channel</Button>
-                  </Form>
+            <Form>
+              <Form.Group>
+                <Form.Label>Channel Name</Form.Label>
+                <Form.Control type="text" onChange={this.handleNameChange} />
+              </Form.Group>
+              <Button onClick={this.createChannel}>Create Channel</Button>
+            </Form>
 
-                </Modal.Body>
-              </Modal>
-                <h1>{this.props.groupName}</h1>
-              {this.renderChannels()}
-                <Button onClick={() => { this.setState({ show: true }) }} variant="light">New Channel</Button>
+          </Modal.Body>
+        </Modal>
+        {/* // using className "navbar" completely destroys all the CSS so navigation must be used instead.*/}
+        <Row>
+        <Col sm={3} className="navigation"><h1>{this.props.groupName}</h1>
+          {this.renderChannels()}
+          <Button onClick={() => { this.setState({ show: true }) }} variant="light">New Channel</Button>
+        </Col>
+        <Col md='auto' sm>
+        <h1>Messages:</h1>
+        <div>{this.renderItems()}</div>
 
-                </div>
+        <Form>
+        <Form>
+            <Form.Group controlId="formMessage">
+              <Form.Control type="text" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+            </Form.Group>
+            <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
+          </Form>
+        </Form>
+        </Col>
+        </Row>
+        
+
+
+      </div>
     );
   }
 }

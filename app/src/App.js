@@ -55,8 +55,6 @@ loggedIn = (e) => {
   }
 
 }
-
-// TODO: Remove the login and signup pages from this app, so as to simplify
 renderComponents() {
   const { view } = this.state
 

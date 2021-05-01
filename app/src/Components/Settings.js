@@ -10,21 +10,6 @@ export default class Settings extends Component {
     }
   }
 
-  // TODO: Move this into the sidebar, this gets the username
-  /*
-  hasClicked = () => {
-    fetch(process.env.REACT_APP_API_URL + '/get_username', {
-      method: 'POST',
-      credentials: 'include'
-    }).then(res =>
-      res.json()
-  ).then(res => {
-    this.setState({username: res})
-    })
-  }*/
-
-
-
   render() {
     return (
       <Container className='settings topPad'>

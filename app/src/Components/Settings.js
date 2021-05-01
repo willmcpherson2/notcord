@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Row, Modal, Form } from 'react-bootstrap';
+import { Button, Container, Row, Modal } from 'react-bootstrap';
 import '../App.css'
 export default class Settings extends Component {
   constructor(props) {

@@ -1,5 +1,6 @@
 import { React, Component } from 'react';
 import { Button, Form, Row, Col, Modal } from 'react-bootstrap';
+import { GearIcon } from '@primer/octicons-react';
 import '../App.css'
 export default class Group extends Component {
   constructor(props) {
@@ -10,9 +11,13 @@ export default class Group extends Component {
       channels: [],
       inviteShow: false,
       channelShow: false,
+      settingsShow: false,
       messages: [],
       currentMessage: '',
-      currentChannel: ''
+      currentChannel: '',
+      usersInChannel: [],
+      users: []
+
     }
   }
 
@@ -21,7 +26,6 @@ export default class Group extends Component {
     fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
       .then(res => res.json())
       .then(res => {
-        console.log(res)
         this.setState({ channels: [...res] })
       });
   }
@@ -34,7 +38,6 @@ export default class Group extends Component {
       fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
         .then(res => res.json())
         .then(res => {
-          console.log(res)
           this.setState({ channels: [...res] })
         });
 
@@ -51,9 +54,29 @@ export default class Group extends Component {
         return (
           <div key={key} className="max">
             <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
-            {/** // TODO: Setup Channel Permissions
-             * <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>Invite +</button>
-             */}
+            <button onClick={() => { 
+              this.setState({ settingsShow: true, currentChannel: val }, () =>
+              {
+                fetch(process.env.REACT_APP_API_URL + '/get_users_in_channel', {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  channel_name: this.state.currentChannel,
+                  group_name: this.props.groupName
+                })
+              }).then(res =>
+                res.json()
+              ).then(res => {
+                this.setState({ usersInChannel: res })
+              });
+              this.renderUsers();
+              })
+              
+              }}><GearIcon size={16} /></button>
           </div>
         )
       })
@@ -75,10 +98,10 @@ export default class Group extends Component {
     }).then(res =>
       res.json()
     ).then(res => {
-      console.log(res)
       this.setState({ messages: res })
     });
     //this.setState({ messages: [...res] })
+    
   }
 
 
@@ -100,7 +123,6 @@ export default class Group extends Component {
     }).then(res =>
       res.json()
     ).then(res => {
-      console.log(res)
       if (res === "Ok") {
         fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
           .then(res => res.json())
@@ -149,7 +171,6 @@ export default class Group extends Component {
   }
 
   sendMessage = (e) => {
-    console.log(this.state.currentMessage)
     fetch(process.env.REACT_APP_API_URL + '/send_message', {
       method: 'POST',
       headers: {
@@ -169,6 +190,44 @@ export default class Group extends Component {
     })
   }
 
+  renderUsersPermission() {
+    
+    try {
+      return (
+        this.state.users.map((val, key) => {
+          if (this.state.usersInChannel[key] !== undefined) {
+            return (
+              <Form.Check key={key} id={val} type="checkbox" label={val} defaultChecked />
+            )
+          } else {
+            return (
+              <Form.Check key={key} id={val} type="checkbox" label={val} />
+            )
+          }
+        })
+      )
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+  renderUsers() {
+    fetch(process.env.REACT_APP_API_URL + '/get_users_in_group', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(this.props.groupName)
+    }).then(res =>
+      res.json()
+    ).then(res => {
+      this.setState({ users: [...res] })
+    });
+  }
+
   handleNameChange = (e) => {
     this.setState({ name: e.target.value })
   }
@@ -179,6 +238,30 @@ export default class Group extends Component {
 
   handleMessageChange = (e) => {
     this.setState({ currentMessage: e.target.value })
+  }
+
+  savePermissions = () => {
+    this.state.users.forEach(user => {
+      if(document.getElementById(user).checked){
+        fetch(process.env.REACT_APP_API_URL + '/add_user_to_channel', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: user,
+            group_name: this.props.groupName,
+            channel_name: this.state.currentChannel
+          })
+        }).then(res =>
+          res.json()
+        ).then(res => {
+          console.log(user + " add to the channel")
+        });
+      }
+    });
   }
 
   renderItems() {
@@ -206,6 +289,24 @@ export default class Group extends Component {
     return (
       <div className="group">
         {/**NAVIGATION BAR */}
+
+        {/**Change Channel Settings */}
+        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Set Channel Permissions</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+
+            <Form>
+              <Form.Group>
+                <Form.Label>Allow:</Form.Label>
+                {this.renderUsersPermission()}
+              </Form.Group>
+              <Button onClick={this.savePermissions}>Save Permissions</Button>
+            </Form>
+
+          </Modal.Body>
+        </Modal>
 
         {/**Create New Channel */}
         <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false }) }}>
@@ -254,14 +355,11 @@ export default class Group extends Component {
           <Col md='auto' sm>
             <h1>Messages:</h1>
             <div>{this.renderItems()}</div>
-
             <Form>
-              <Form>
-                <Form.Group controlId="formMessage">
-                  <Form.Control type="text" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-                </Form.Group>
-                <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
-              </Form>
+              <Form.Group controlId="formMessage">
+                <Form.Control type="text" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+              </Form.Group>
+              <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
             </Form>
           </Col>
         </Row>

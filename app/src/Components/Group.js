@@ -5,12 +5,14 @@ export default class Group extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: null,
+      name: '',
+      invite: '',
       channels: [],
-      show: false,
+      inviteShow: false,
+      channelShow: false,
       messages: [],
-      currentMessage: null,
-      currentChannel: null
+      currentMessage: '',
+      currentChannel: ''
     }
   }
 
@@ -49,6 +51,9 @@ export default class Group extends Component {
         return (
           <div key={key} className="max">
             <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
+            {/** // TODO: Setup Channel Permissions
+             * <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>Invite +</button>
+             */}
           </div>
         )
       })
@@ -114,6 +119,35 @@ export default class Group extends Component {
 
   }
 
+  inviteUser = () => {
+    //This invites users
+    fetch(process.env.REACT_APP_API_URL + '/invite_user_to_group', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        username: this.state.invite,
+        group_name: this.props.groupName
+      })
+    }).then(res =>
+      res.json()
+    ).then(res => {
+
+      //TODO: Convert all of these in the program with "switch" statements for all the errors as directed in the API Documentation
+      if (res === "Ok") {
+        console.log("USER " + this.state.invite + " INVITED")
+      } else if (res === "ChannelAlreadyExists") {
+        console.log("CHANNEL ALREADY EXISTS")
+        // FEATURE: create bootstrap alert for this
+      } else {
+        console.log(res)
+      }
+    })
+  }
+
   sendMessage = (e) => {
     console.log(this.state.currentMessage)
     fetch(process.env.REACT_APP_API_URL + '/send_message', {
@@ -139,6 +173,10 @@ export default class Group extends Component {
     this.setState({ name: e.target.value })
   }
 
+  handleInviteChange = (e) => {
+    this.setState({ invite: e.target.value })
+  }
+
   handleMessageChange = (e) => {
     this.setState({ currentMessage: e.target.value })
   }
@@ -160,7 +198,7 @@ export default class Group extends Component {
     } catch (error) {
       console.log(error);
     }
-    
+
   }
 
 
@@ -168,7 +206,9 @@ export default class Group extends Component {
     return (
       <div className="group">
         {/**NAVIGATION BAR */}
-        <Modal show={this.state.show} onHide={() => { this.setState({ show: false }) }}>
+
+        {/**Create New Channel */}
+        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Create New Channel</Modal.Title>
           </Modal.Header>
@@ -184,11 +224,32 @@ export default class Group extends Component {
 
           </Modal.Body>
         </Modal>
+
+
+        {/**Invite people to group */}
+        <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Invite People</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+
+            <Form>
+              <Form.Group>
+                <Form.Label>Invite by Username</Form.Label>
+                <Form.Control type="text" onChange={this.handleInviteChange} />
+              </Form.Group>
+              <Button onClick={this.inviteUser}>Invite User</Button>
+            </Form>
+
+          </Modal.Body>
+        </Modal>
         {/* // using className "navbar" completely destroys all the CSS so navigation must be used instead.*/}
         <Row>
-          <Col sm={3} className="navigation"><h1>{this.props.groupName}</h1>
+          <Col sm={3} className="navigation">
+            <h1>{this.props.groupName}<Button onClick={() => { this.setState({ inviteShow: true }) }} variant="info" >Invite +</Button></h1>
+
             {this.renderChannels()}
-            <Button onClick={() => { this.setState({ show: true }) }} variant="light">New Channel</Button>
+            <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
           </Col>
           <Col md='auto' sm>
             <h1>Messages:</h1>

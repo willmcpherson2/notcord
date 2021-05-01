@@ -187,6 +187,9 @@ export default class Group extends Component {
       res.json()
     ).then(res => {
       console.log(res)
+      //FIXME: This should be automatically rendered by the database pinging the client to reload
+      this.renderMessages(this.state.currentChannel)
+      this.setState({ currentMessage: ''})
     })
   }
 
@@ -259,6 +262,7 @@ export default class Group extends Component {
           res.json()
         ).then(res => {
           console.log(user + " add to the channel")
+          this.setState({ settingsShow: false })
         });
       }
     });

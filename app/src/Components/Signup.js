@@ -18,7 +18,7 @@ export default class Login extends Component {
   handleSubmit = (e) => {
     const { username, password, passConfirm } = this.state;
 
-    if (password == passConfirm) {
+    if (password === passConfirm) {
 
       //This then posts the json of the username and password
       fetch(process.env.REACT_APP_API_URL + '/signup', {

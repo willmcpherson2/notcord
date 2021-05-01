@@ -2,9 +2,6 @@ import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col} from 'react-bootstrap';
 import Logo from '../notcord.png';
 import '../App.css'
-
-let loaderWheel = "loader noDisplay"
-let loaderButton = "LoginButton"
 export default class Login extends Component {
   constructor(props) {
     super(props);
@@ -95,7 +92,7 @@ export default class Login extends Component {
         </Row>
         <Row>
           {/** TODO: Move this to an appropriate location. Make website not the webapp. URL: app.notcord.com, and privacy policy will be at notcord.com/privacy */}
-          <a href='http://localhost:3000/privacy.html' target="_blank">Privacy Policy</a></Row>
+          <a href='http://localhost:3000/privacy.html' rel="noreferrer" target="_blank">Privacy Policy</a></Row>
       </Container>
     );
   }

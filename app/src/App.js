@@ -24,7 +24,7 @@ export default class App extends Component {
     }).then(res =>
       res.json()
     ).then(res => {
-      if(res != "NotLoggedIn"){
+      if(res !== "NotLoggedIn"){
         console.log(res)
         this.setState({userLoggedIn: true})
       } else {

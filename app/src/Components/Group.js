@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Form, Row, Col, Modal } from 'react-bootstrap';
+import { Button, Form, Row, Col, Modal } from 'react-bootstrap';
 import '../App.css'
 export default class Group extends Component {
   constructor(props) {

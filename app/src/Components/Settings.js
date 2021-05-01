@@ -1,6 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Form, Row, Col } from 'react-bootstrap';
-import Logo from '../notcord.png';
+import { Container, Row } from 'react-bootstrap';
 import '../App.css'
 export default class Settings extends Component {
   constructor(props) {

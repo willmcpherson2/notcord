@@ -5,12 +5,12 @@ export default class Group extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: 'boop',
+      name: null,
       channels: [],
       show: false,
       messages: [],
-      currentMessage: '',
-      currentChannel: ''
+      currentMessage: null,
+      currentChannel: null
     }
   }
 
@@ -35,6 +35,10 @@ export default class Group extends Component {
           console.log(res)
           this.setState({ channels: [...res] })
         });
+
+      if (this.state.currentChannel !== null) {
+        this.renderMessages(this.state.currentChannel);
+      }
     }
   }
 
@@ -44,7 +48,7 @@ export default class Group extends Component {
       this.state.channels.map((val, key) => {
         return (
           <div key={key} className="max">
-            <button onClick={() => { this.setState({currentChannel: val}, () => this.renderMessages(val) )}}>{val}</button>
+            <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
           </div>
         )
       })
@@ -66,10 +70,10 @@ export default class Group extends Component {
     }).then(res =>
       res.json()
     ).then(res => {
-        console.log(res)
-        this.setState({messages: res})
-      });
-      //this.setState({ messages: [...res] })
+      console.log(res)
+      this.setState({ messages: res })
+    });
+    //this.setState({ messages: [...res] })
   }
 
 
@@ -142,14 +146,16 @@ export default class Group extends Component {
   renderItems() {
     return (
       this.state.messages.map((val, key) => {
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        let time = new Date(val.time + " UTC");
+        let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + time.getMinutes()
         return (
-            <p key={key}><span>({val.time})</span> {val.username}: {val.message}</p>
+          <p key={key}><span>({date})</span> {val.username}: {val.message}</p>
         )
       })
     )
-    return this.state.messages.map(message => {
-      <p key={message.time}>{message.message}33</p>;
-    });
   }
 
 
@@ -175,25 +181,25 @@ export default class Group extends Component {
         </Modal>
         {/* // using className "navbar" completely destroys all the CSS so navigation must be used instead.*/}
         <Row>
-        <Col sm={3} className="navigation"><h1>{this.props.groupName}</h1>
-          {this.renderChannels()}
-          <Button onClick={() => { this.setState({ show: true }) }} variant="light">New Channel</Button>
-        </Col>
-        <Col md='auto' sm>
-        <h1>Messages:</h1>
-        <div>{this.renderItems()}</div>
+          <Col sm={3} className="navigation"><h1>{this.props.groupName}</h1>
+            {this.renderChannels()}
+            <Button onClick={() => { this.setState({ show: true }) }} variant="light">New Channel</Button>
+          </Col>
+          <Col md='auto' sm>
+            <h1>Messages:</h1>
+            <div>{this.renderItems()}</div>
 
-        <Form>
-        <Form>
-            <Form.Group controlId="formMessage">
-              <Form.Control type="text" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-            </Form.Group>
-            <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
-          </Form>
-        </Form>
-        </Col>
+            <Form>
+              <Form>
+                <Form.Group controlId="formMessage">
+                  <Form.Control type="text" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                </Form.Group>
+                <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
+              </Form>
+            </Form>
+          </Col>
         </Row>
-        
+
 
 
       </div>

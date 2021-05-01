@@ -144,18 +144,23 @@ export default class Group extends Component {
   }
 
   renderItems() {
-    return (
-      this.state.messages.map((val, key) => {
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"
-        ];
-        let time = new Date(val.time + " UTC");
-        let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + time.getMinutes()
-        return (
-          <p key={key}><span>({date})</span> {val.username}: {val.message}</p>
-        )
-      })
-    )
+    try {
+      return (
+        this.state.messages.map((val, key) => {
+          const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+          ];
+          let time = new Date(val.time + " UTC");
+          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + time.getMinutes()
+          return (
+            <p key={key}><span>({date})</span> {val.username}: {val.message}</p>
+          )
+        })
+      )
+    } catch (error) {
+      console.log(error);
+    }
+    
   }
 
 

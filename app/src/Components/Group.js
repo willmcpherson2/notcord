@@ -340,7 +340,7 @@ export default class Group extends Component {
 
             <Form>
               <Form.Group>
-                <Form.Label>Invite by Username</Form.Label>
+                <Form.Label>Invite by Username (Case Sensitive)</Form.Label>
                 <Form.Control type="text" onChange={this.handleInviteChange} />
               </Form.Group>
               <Button onClick={this.inviteUser}>Invite User</Button>

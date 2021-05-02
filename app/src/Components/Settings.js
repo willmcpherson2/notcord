@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Row, Modal } from 'react-bootstrap';
+import { Button, Container, Row, Modal, Form } from 'react-bootstrap';
 import '../App.css'
 export default class Settings extends Component {
   constructor(props) {
@@ -7,7 +7,8 @@ export default class Settings extends Component {
     this.state = {
       username: 'default',
       inviteShow: false,
-      invites: []
+      invites: [],
+      selectedFile: null
     }
   }
 
@@ -58,6 +59,20 @@ export default class Settings extends Component {
   }
 
   componentDidMount() {
+    //This gets the avatar
+    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify()
+    }).then(res =>
+      res.json()
+    ).then(res => {
+      this.setState({ username: res})
+    })
     this.getInvites();
   }
 
@@ -73,6 +88,46 @@ export default class Settings extends Component {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  renderAvatar() {
+    //This gets the avatar
+    fetch(process.env.REACT_APP_API_URL + '/get_avatar', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(this.state.username)
+    }).then(res => {
+      //FIXME: allow the actual content to be displayed here
+      //console.log(res.body)
+    }
+      
+    )
+  }
+
+  handleFileChange = (e) => {
+    this.setState({ selectedFile: e.target.files[0] })
+
+  }
+
+  newAvatar() {
+    //This sets the avatar
+    fetch(process.env.REACT_APP_API_URL + '/set_avatar', {
+      method: 'POST',
+      headers: {
+        'Accept': 'image/png',
+        'Content-Type': 'image/png'
+      },
+      credentials: 'include',
+      body: this.state.selectedFile
+    }).then(res => {
+      console.log(res)
+    }
+      
+    )
   }
 
   render() {
@@ -92,10 +147,21 @@ export default class Settings extends Component {
 
         </Row>
         <Row>
-          <Button onClick={() => { 
+          <Button onClick={() => {
             this.setState({ inviteShow: true })
             this.getInvites()
-         }} variant="info">Invites</Button>
+          }} variant="info">Invites</Button>
+        </Row>
+        <Row>
+          <h1>Avatar:</h1>
+          {this.renderAvatar()}
+          <Form>
+            <Form.Group>
+              <Form.File id="setNewAvatar" label="Set New Avatar" onChange={this.handleFileChange}/>
+            </Form.Group>
+            <Button variant="secondary" onClick={() => {this.newAvatar()}}>Save</Button>
+          </Form>
+          
         </Row>
       </Container>
     );

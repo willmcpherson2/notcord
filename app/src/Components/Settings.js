@@ -95,17 +95,18 @@ export default class Settings extends Component {
     fetch(process.env.REACT_APP_API_URL + '/get_avatar', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
       credentials: 'include',
       body: JSON.stringify(this.state.username)
-    }).then(res => {
-      //FIXME: allow the actual content to be displayed here
-      //console.log(res.body)
-    }
-      
-    )
+    }).then(res =>
+      res.blob()
+    ).then(res => {
+      const urlCreator = window.URL || window.webkitURL;
+      const url = urlCreator.createObjectURL(res);
+      const avatar = document.getElementById('avatar');
+      avatar.src = url;
+    })
   }
 
   handleFileChange = (e) => {
@@ -125,6 +126,7 @@ export default class Settings extends Component {
       body: this.state.selectedFile
     }).then(res => {
       console.log(res)
+      this.renderAvatar()
     }
       
     )
@@ -154,6 +156,7 @@ export default class Settings extends Component {
         </Row>
         <Row>
           <h1>Avatar:</h1>
+          <img id="avatar" width="64" height="64"></img>
           {this.renderAvatar()}
           <Form>
             <Form.Group>

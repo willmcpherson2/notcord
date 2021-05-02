@@ -28,6 +28,7 @@
 
 .Login img {
   width: 128px;
+  height: 128px;
 }
 
 .noDisplay {
@@ -68,10 +69,23 @@ div Sidebar {
 
 .sidebar {
   height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+  overflow-x: hidden;
   width: 80px;
   text-align: left;
   background-color: #202a55;
 }
+
+/* Sidebar Scollbar */
+  .sidebar::-webkit-scrollbar {
+    width: 0px;               /* width of the entire scrollbar */
+  }
+
+
+
+
+
 
 .sidebar img {
   width: 64px;
@@ -82,19 +96,69 @@ div Sidebar {
 }
 
 .sidebar .image:hover {
-  background-color:  rgba(0, 189, 189, 0.356);
+  filter: opacity(0.5) drop-shadow(0 0 0 #FFFFFF) drop-shadow(0 0 0 #FFFFFF) drop-shadow(0 0 0 #FFFFFF);
 }
 
 .sidebar .hozLine {
   background-color: #eeeeee;
   height: 1.5px;
   border-radius: 10em;
+  margin-bottom: 0px;
 }
 
 .groupButton {
+  border: none;
   margin: 10px auto 0 auto;
-  padding: 15px 25px;
+  width: 55px;
+  height: 55px;
+  background-color: #eeeeee;
+  cursor: pointer;
+  text-align: center;
+  line-height: 55px;
+  border-radius: 20px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: large;
 }
+
+  .groupButton:hover {
+    -webkit-transition: border-radius 0.2s;
+    transition: border-radius 0.2s;
+    border-radius: 10px;
+    
+  }
+
+  /* Button Colours */
+  .groupButton.red {
+    background-color: #ffb4b4;
+  }
+  .groupButton.orange {
+    background-color: #ffd6b4;
+  }
+  .groupButton.yellow {
+    background-color: #feffb4;
+  }
+  .groupButton.green {
+    background-color: #c1ffb4;
+  }
+  .groupButton.blue {
+    background-color: #b4dbff;
+  }
+  .groupButton.purple {
+    background-color: #ffb4f5;
+  }
+  .groupButton.Settings {
+    background-color: #cccccc;
+  }
+  .groupButton.bottom {
+    margin-bottom: 200px;
+  }
+
+#button-tooltip {
+  font-size: large;
+  font-weight: 400;
+  font-family: 'Ubuntu', sans-serif;
+}
+
 
 
 

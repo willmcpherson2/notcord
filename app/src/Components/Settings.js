@@ -156,7 +156,7 @@ export default class Settings extends Component {
         </Row>
         <Row>
           <h1>Avatar:</h1>
-          <img id="avatar" width="64" height="64"></img>
+          <img id="avatar" width="64" height="64" alt="Avatar"></img>
           {this.renderAvatar()}
           <Form>
             <Form.Group>

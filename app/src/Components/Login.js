@@ -2,9 +2,6 @@ import { React, Component } from 'react';
 import { Button, Container, Form, Row, Col} from 'react-bootstrap';
 import Logo from '../notcord.png';
 import '../App.css'
-
-let loaderWheel = "loader noDisplay"
-let loaderButton = "LoginButton"
 export default class Login extends Component {
   constructor(props) {
     super(props);
@@ -21,7 +18,7 @@ export default class Login extends Component {
     this.setState({shouldShowButton: false}, () => {
       console.log("Showing Button: " + this.state.shouldShowButton);
 
-
+      // FEATURE: Allow users to login and signup using their email address
       fetch(process.env.REACT_APP_API_URL + '/login', {
         method: 'POST',
         headers: {
@@ -36,8 +33,8 @@ export default class Login extends Component {
       }).then(res =>
           res.json()
       ).then(res => {
-        // TODO: create bootstrap alert for errors / success
-        // TODO: setup a delay for the success message
+        // FEATURE: create bootstrap alert for errors / success
+        // TODO: setup a delay for the success message loading wheel
         if (res === "Ok") {
           console.log(res)
           this.props.loggedIn(true)
@@ -64,7 +61,7 @@ export default class Login extends Component {
   }
 
 
-  // TODO: Allow users to login and signup using their email address
+
   render() {
     return (
       <Container className="Login">
@@ -95,7 +92,7 @@ export default class Login extends Component {
         </Row>
         <Row>
           {/** TODO: Move this to an appropriate location. Make website not the webapp. URL: app.notcord.com, and privacy policy will be at notcord.com/privacy */}
-          <a href='http://localhost:3000/privacy.html' target="_blank">Privacy Policy</a></Row>
+          <a href='http://localhost:3000/privacy.html' rel="noreferrer" target="_blank">Privacy Policy</a></Row>
       </Container>
     );
   }

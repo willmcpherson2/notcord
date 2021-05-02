@@ -24,7 +24,7 @@ export default class App extends Component {
     }).then(res =>
       res.json()
     ).then(res => {
-      if(res != "NotLoggedIn"){
+      if(res !== "NotLoggedIn"){
         console.log(res)
         this.setState({userLoggedIn: true})
       } else {
@@ -55,8 +55,6 @@ loggedIn = (e) => {
   }
 
 }
-
-// TODO: Remove the login and signup pages from this app, so as to simplify
 renderComponents() {
   const { view } = this.state
 
@@ -68,7 +66,7 @@ renderComponents() {
       case "settings":
         return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
       case "group":
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Group group={this.state.group} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Group groupName={this.state.group} /></Col></Row></Container>
       default:
         return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
     }

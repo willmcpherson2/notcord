@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Signup from './Signup';
+import Signup from '../Signup';
 import {render, fireEvent, cleanup, getByText} from '@testing-library/react';
 
 afterEach(cleanup)

@@ -447,6 +447,50 @@ pub fn add_channel_to_group(
     ok!()
 }
 
+#[post("/remove_channel_from_group", data = "<channel_and_group>")]
+pub fn remove_channel_from_group(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &channel_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        return err!(Err::PermissionDenied);
+    }
+
+    let channel_in_group_exists = exists!(
+        database,
+        "SELECT * FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &channel_and_group.channel_name,
+        &group_id
+    );
+    if !channel_in_group_exists {
+        return err!(Err::ChannelDoesNotExist);
+    }
+
+    execute!(
+        database,
+        "DELETE FROM channels WHERE name=?1",
+        &channel_and_group.channel_name
+    );  
+
+    ok!()
+}
+
 #[post("/add_user_to_channel", data = "<user_group_channel>")]
 pub fn add_user_to_channel(
     user_group_channel: Json<UserGroupChannel>,

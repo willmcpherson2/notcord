@@ -143,6 +143,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             remove_user_from_group,
             get_users_in_group,
             add_channel_to_group,
+            remove_channel_from_group,
             add_user_to_channel,
             remove_user_from_channel,
             get_groups_for_user,

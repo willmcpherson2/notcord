@@ -329,7 +329,7 @@ pub fn remove_user_from_group(user_and_group: Json<UserAndGroup>, database: Data
 
     execute!(
         database,
-        "DELETE FROM channel_members JOIN group_channels ON channel_members.channel_id = group_channel.channel_id WHERE user_id=?1 AND group_id=!2",
+        "DELETE FROM channel_members WHERE user_id=?1 AND channel_id IN (SELECT channel_id FROM group_members WHERE group_id=?2)",
         &user_id,
         &group_id
     );

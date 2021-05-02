@@ -863,6 +863,85 @@ fn accept_invite_invite_doesnt_exist() {
 }
 
 #[test]
+fn remove_user_from_group_success(){
+    let (client, _) = setup!();
+    
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+    client
+        .post("/invite_user_to_group")
+        .header(ContentType::JSON)
+        .body(  "{
+                    \"username\":\"test_user02\",
+                    \"group_name\":\"test_group01\"
+                }",)
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/accept_invite")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+
+    let message = 
+        client
+        .post("/remove_user_from_group")
+        .header(ContentType::JSON)
+        .body(  "{
+                    \"username\":\"test_user02\",
+                    \"group_name\":\"test_group01\"
+                }",);
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Ok::Ok).unwrap()));
+}
+
+#[test]
 fn get_users_in_group_success(){
     let (client, _) = setup!();
 

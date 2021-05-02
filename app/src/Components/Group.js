@@ -276,9 +276,9 @@ export default class Group extends Component {
             "July", "August", "September", "October", "November", "December"
           ];
           let time = new Date(val.time + " UTC");
-          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + time.getMinutes()
+          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes()<10?'0':'') + time.getMinutes()
           return (
-            <p key={key}><span>({date})</span> {val.username}: {val.message}</p>
+            <p key={key}><span>({date})</span><blue>{val.username}</blue>: {val.message}</p>
           )
         })
       )

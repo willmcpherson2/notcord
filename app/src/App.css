@@ -115,5 +115,9 @@ div Sidebar {
 }
 
 .group p span {
-  color: #ff0000
+  color: #ff0000;
+}
+
+.group p blue {
+  color: #1100ff;
 }

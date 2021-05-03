@@ -280,6 +280,63 @@ pub fn accept_invite(group_name: Json<&str>, mut cookies: Cookies, database: Dat
     ok!()
 }
 
+#[post("/remove_user_from_group", data = "<user_and_group>")]
+pub fn remove_user_from_group(user_and_group: Json<UserAndGroup>, database: Database, mut cookies: Cookies) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &user_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_and_group.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        if admin_id != user_id {
+            return err!(Err::PermissionDenied);
+        }
+    }
+
+    execute!(
+        database,
+        "DELETE FROM group_members WHERE user_id=?1 AND group_id =?2",
+        &user_id,
+        &group_id
+    );
+
+    execute!(
+        database,
+        "DELETE FROM channel_members WHERE user_id=?1 AND channel_id IN (SELECT channel_id FROM group_members WHERE group_id=?2)",
+        &user_id,
+        &group_id
+    );
+
+    ok!()
+}
+
 #[post("/get_users_in_group", data = "<name>")]
 pub fn get_users_in_group(name: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
@@ -390,6 +447,50 @@ pub fn add_channel_to_group(
     ok!()
 }
 
+#[post("/remove_channel_from_group", data = "<channel_and_group>")]
+pub fn remove_channel_from_group(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &channel_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        return err!(Err::PermissionDenied);
+    }
+
+    let channel_in_group_exists = exists!(
+        database,
+        "SELECT * FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &channel_and_group.channel_name,
+        &group_id
+    );
+    if !channel_in_group_exists {
+        return err!(Err::ChannelDoesNotExist);
+    }
+
+    execute!(
+        database,
+        "DELETE FROM channels WHERE name=?1",
+        &channel_and_group.channel_name
+    );  
+
+    ok!()
+}
+
 #[post("/add_user_to_channel", data = "<user_group_channel>")]
 pub fn add_user_to_channel(
     user_group_channel: Json<UserGroupChannel>,
@@ -453,6 +554,77 @@ pub fn add_user_to_channel(
     execute!(
         database,
         "INSERT INTO channel_members (user_id, channel_id) VALUES (?1, ?2)",
+        &user_id,
+        &channel_id
+    );
+    ok!()
+}
+
+#[post("/remove_user_from_channel", data = "<user_group_channel>")]
+pub fn remove_user_from_channel(
+    user_group_channel: Json<UserGroupChannel>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &user_group_channel.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_group_channel.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        if user_id != admin_id {
+            return err!(Err::PermissionDenied);
+        }
+    }
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channels.ROWID FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &user_group_channel.channel_name,
+        &group_id
+    )
+    .map_err(|_| Err::ChannelDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let user_in_channel = exists!(
+        database,
+        "SELECT * FROM channel_members WHERE user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+    if !user_in_channel {
+        return err!(Err::UserNotInChannel);
+    }
+
+    execute!(
+        database,
+        "DELETE FROM channel_members where user_id=?1 AND channel_id=?2",
         &user_id,
         &channel_id
     );

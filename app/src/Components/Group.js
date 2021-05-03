@@ -250,6 +250,7 @@ export default class Group extends Component {
 
   savePermissions = () => {
     this.state.users.forEach(user => {
+      //If user is selected. This, will add them
       if (document.getElementById(user).checked) {
         fetch(process.env.REACT_APP_API_URL + '/add_user_to_channel', {
           method: 'POST',
@@ -267,6 +268,27 @@ export default class Group extends Component {
           res.json()
         ).then(res => {
           console.log(user + " add to the channel")
+          this.setState({ settingsShow: false })
+        });
+        //And this will remove them. 
+        // BUG: This removes admins included, and can remove the person who made it, this should be validated at a later stage
+      } else if(!document.getElementById(user).checked) {
+        fetch(process.env.REACT_APP_API_URL + '/remove_user_from_channel', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: user,
+            group_name: this.props.groupName,
+            channel_name: this.state.currentChannel
+          })
+        }).then(res =>
+          res.json()
+        ).then(res => {
+          console.log(user + " removed from channel")
           this.setState({ settingsShow: false })
         });
       }
@@ -310,7 +332,6 @@ export default class Group extends Component {
         })
       )
     } catch (error) {
-      console.log(error);
     }
 
   }

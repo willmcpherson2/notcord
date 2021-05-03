@@ -317,6 +317,44 @@ export default class Group extends Component {
     });
   }
 
+  leaveGroup = () => {
+    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    }).then(res =>
+      res.json()
+    ).then(res => {
+      console.log(res)
+      let user = res;
+      fetch(process.env.REACT_APP_API_URL + '/remove_user_from_group', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          username: user,
+          group_name: this.props.groupName
+        })
+      }).then(res =>
+        res.json()
+      ).then(res => {
+        console.log("Left Group")
+        // TODO: Refresh groups after user leaves
+        // TODO: add warning
+        // FIXME: Removing the admin means no admins are in this group now. fix permissions
+      });
+    });
+
+
+    
+  }
+
   renderItems() {
     try {
       return (
@@ -403,7 +441,13 @@ export default class Group extends Component {
 
             {this.renderChannels()}
             <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
+            <Button onClick={this.leaveGroup} variant="danger">Leave Group</Button>
           </Col>
+
+
+
+
+
           <Col md='auto' sm>
             <h1>Messages:</h1>
             <div>{this.renderItems()}</div>
@@ -415,7 +459,9 @@ export default class Group extends Component {
             </Form>
           </Col>
         </Row>
-
+        <Row>
+          
+        </Row>
 
 
       </div>

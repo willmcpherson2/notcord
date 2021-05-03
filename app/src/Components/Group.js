@@ -23,11 +23,7 @@ export default class Group extends Component {
 
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
   componentDidMount() {
-    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
-      .then(res => res.json())
-      .then(res => {
-        this.setState({ channels: [...res] })
-      });
+    this.rerenderChannels();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -47,6 +43,14 @@ export default class Group extends Component {
     }
   }
 
+  rerenderChannels() {
+    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
+      .then(res => res.json())
+      .then(res => {
+        this.setState({ channels: [...res] })
+      });
+  }
+
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
   renderChannels() {
     return (
@@ -54,29 +58,28 @@ export default class Group extends Component {
         return (
           <div key={key} className="max">
             <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
-            <button onClick={() => { 
-              this.setState({ settingsShow: true, currentChannel: val }, () =>
-              {
+            <button onClick={() => {
+              this.setState({ settingsShow: true, currentChannel: val }, () => {
                 fetch(process.env.REACT_APP_API_URL + '/get_users_in_channel', {
-                method: 'POST',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  channel_name: this.state.currentChannel,
-                  group_name: this.props.groupName
-                })
-              }).then(res =>
-                res.json()
-              ).then(res => {
-                this.setState({ usersInChannel: res })
-              });
-              this.renderUsers();
+                  method: 'POST',
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                  },
+                  credentials: 'include',
+                  body: JSON.stringify({
+                    channel_name: this.state.currentChannel,
+                    group_name: this.props.groupName
+                  })
+                }).then(res =>
+                  res.json()
+                ).then(res => {
+                  this.setState({ usersInChannel: res })
+                });
+                this.renderUsers();
               })
-              
-              }}><GearIcon size={16} /></button>
+
+            }}><GearIcon size={16} /></button>
           </div>
         )
       })
@@ -101,7 +104,7 @@ export default class Group extends Component {
       this.setState({ messages: res })
     });
     //this.setState({ messages: [...res] })
-    
+
   }
 
 
@@ -128,7 +131,9 @@ export default class Group extends Component {
           .then(res => res.json())
           .then(res => {
             console.log(res)
-            this.setState({ channels: [...res] })
+            
+            this.setState({ channels: [...res], channelShow: false }, () => this.rerenderChannels())
+
           });
 
       } else if (res === "ChannelAlreadyExists") {
@@ -189,12 +194,12 @@ export default class Group extends Component {
       console.log(res)
       //FIXME: This should be automatically rendered by the database pinging the client to reload
       this.renderMessages(this.state.currentChannel)
-      this.setState({ currentMessage: ''})
+      this.setState({ currentMessage: '' })
     })
   }
 
   renderUsersPermission() {
-    
+
     try {
       return (
         this.state.users.map((val, key) => {
@@ -245,7 +250,7 @@ export default class Group extends Component {
 
   savePermissions = () => {
     this.state.users.forEach(user => {
-      if(document.getElementById(user).checked){
+      if (document.getElementById(user).checked) {
         fetch(process.env.REACT_APP_API_URL + '/add_user_to_channel', {
           method: 'POST',
           headers: {
@@ -268,6 +273,28 @@ export default class Group extends Component {
     });
   }
 
+  deleteChannel = () => {
+
+    fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        channel_name: this.state.currentChannel,
+        group_name: this.props.groupName
+      })
+    }).then(res =>
+      res.json()
+    ).then(res => {
+      console.log("Channel Deleted")
+      this.setState({ settingsShow: false });
+      this.rerenderChannels();
+    });
+  }
+
   renderItems() {
     try {
       return (
@@ -276,7 +303,7 @@ export default class Group extends Component {
             "July", "August", "September", "October", "November", "December"
           ];
           let time = new Date(val.time + " UTC");
-          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes()<10?'0':'') + time.getMinutes()
+          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
           return (
             <p key={key}><span>({date})</span><blue>{val.username}</blue>: {val.message}</p>
           )
@@ -297,7 +324,7 @@ export default class Group extends Component {
         {/**Change Channel Settings */}
         <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false }) }}>
           <Modal.Header closeButton>
-            <Modal.Title>Set Channel Permissions</Modal.Title>
+            <Modal.Title>Channel Settings</Modal.Title>
           </Modal.Header>
           <Modal.Body>
 
@@ -306,7 +333,7 @@ export default class Group extends Component {
                 <Form.Label>Allow:</Form.Label>
                 {this.renderUsersPermission()}
               </Form.Group>
-              <Button onClick={this.savePermissions}>Save Permissions</Button>
+              <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
             </Form>
 
           </Modal.Body>

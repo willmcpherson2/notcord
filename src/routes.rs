@@ -102,6 +102,14 @@ pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Re
     ok!()
 }
 
+#[post("/logout")]
+pub fn logout(mut cookies:Cookies) -> Response {
+    util::get_logged_in_user_id(&mut cookies)?;
+
+    cookies.remove_private(Cookie::named("user_id"));
+    ok!()
+}
+
 #[post("/get_username")]
 pub fn get_username(mut cookies: Cookies, database: Database) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;

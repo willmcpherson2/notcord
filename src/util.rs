@@ -133,6 +133,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             files,
             signup,
             login,
+            logout,
             get_username,
             set_avatar,
             get_avatar,

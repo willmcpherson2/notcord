@@ -867,7 +867,7 @@ pub fn add_friend_request(user: Json<&str>, mut cookies: Cookies, database: Data
 
     let requestee_id: i64 = query_row!(
         database,
-        "SELECT ROWID FROM users WHERE name=?1",
+        "SELECT ROWID FROM users WHERE username=?1",
         &user.into_inner()
     )
     .map_err(|_| Err::UserDoesNotExist)?;

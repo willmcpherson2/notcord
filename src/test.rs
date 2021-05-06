@@ -1198,7 +1198,7 @@ fn add_channel_to_group_success(){
 
     let mut response = message.dispatch(); 
 
-     assert_eq!(
+    assert_eq!(
         response.body_string(), 
         Some(serde_json::to_string(&Ok::Ok).unwrap()));
 }
@@ -1392,4 +1392,199 @@ fn add_channel_to_group_channel_already_exists(){
      assert_eq!(
         response.body_string(), 
         Some(serde_json::to_string(&Err::ChannelAlreadyExists).unwrap()));
+}
+
+#[test]
+fn add_friend_request_success(){
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user02\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Ok::Ok).unwrap()));
+}
+
+#[test]
+fn add_friend_request_not_logged_in(){
+    let (client, _) = setup!();
+    
+    let message = client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user02\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap()));
+}
+
+#[test]
+fn add_friend_request_user_doesnt_exist(){
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user02\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::UserDoesNotExist).unwrap()));
+}
+
+#[test]
+fn add_friend_request_cannot_be_own_friend(){
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user01\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::CannotBeOwnFriend).unwrap()));
+}
+
+#[test]
+fn add_friend_request_invite_already_exists(){
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+        "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+
+    client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user02\"")
+        .dispatch();
+
+    let message = client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user02\"");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(), 
+        Some(serde_json::to_string(&Err::InviteAlreadyExists).unwrap()));
+}
+
+#[test]
+fn add_friend_request_friendship_already_exists(){
+    panic!("unfinished test");
 }

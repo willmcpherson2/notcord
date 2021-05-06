@@ -21,15 +21,36 @@ export default class Group extends Component {
     }
   }
 
+  async getChannels() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', {
+      method: 'POST',
+      credentials: 'include',
+      body: JSON.stringify(this.props.groupName)
+    })
+    const channels = await data.json();
+    this.setState({ channels: [...channels] })
+  }
+
+  async getUsersInChannel() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_users_in_channel', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        channel_name: this.state.currentChannel,
+        group_name: this.props.groupName
+      })
+    })
+    const users = await data.json()
+    this.setState({ usersInChannel: users })
+  }
+
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
   componentDidMount() {
-    // BUG: Channels not being got from the server. Could be an error with front end or back end.
-    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
-      .then(res => res.json())
-      .then(res => {
-        this.setState({ channels: [...res] })
-        console.log(this.props.groupName)
-      });
+    this.getChannels();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -37,26 +58,12 @@ export default class Group extends Component {
     //Checks the groupName current to the previous one last update, if they are not the same, then get the new channels for this new group.
     if (this.props.groupName !== prevProps.groupName) {
       //Fetches the channels and assigns them to the 'channels' array state.
-      fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
-        .then(res => res.json())
-        .then(res => {
-          this.setState({ channels: [...res] })
-          console.log(this.props.groupName)
-          console.log(this.state.channels)
-        });
+      this.getChannels();
 
       if (this.state.currentChannel !== null) {
         this.renderMessages(this.state.currentChannel);
       }
     }
-  }
-
-  rerenderChannels() {
-    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
-      .then(res => res.json())
-      .then(res => {
-        this.setState({ channels: [...res] })
-      });
   }
 
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
@@ -68,22 +75,7 @@ export default class Group extends Component {
             <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
             <button onClick={() => {
               this.setState({ settingsShow: true, currentChannel: val }, () => {
-                fetch(process.env.REACT_APP_API_URL + '/get_users_in_channel', {
-                  method: 'POST',
-                  headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify({
-                    channel_name: this.state.currentChannel,
-                    group_name: this.props.groupName
-                  })
-                }).then(res =>
-                  res.json()
-                ).then(res => {
-                  this.setState({ usersInChannel: res })
-                });
+                this.getUsersInChannel()
                 this.renderUsers();
               })
 
@@ -94,8 +86,8 @@ export default class Group extends Component {
     )
   }
 
-  renderMessages(channel) {
-    fetch(process.env.REACT_APP_API_URL + '/get_messages', {
+  async renderMessages(channel) {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_messages', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -106,21 +98,18 @@ export default class Group extends Component {
         channel_name: channel,
         group_name: this.props.groupName
       })
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      this.setState({ messages: res })
-    });
-    //this.setState({ messages: [...res] })
+    })
+    const messages = await data.json()
+    this.setState({ messages: messages })
 
   }
 
 
-  createChannel = () => {
+  createChannel = async () => {
     const { name } = this.state;
 
     //This creates the channel
-    fetch(process.env.REACT_APP_API_URL + '/add_channel_to_group', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/add_channel_to_group', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -131,32 +120,21 @@ export default class Group extends Component {
         channel_name: name,
         group_name: this.props.groupName
       })
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      if (res === "Ok") {
-        fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
-          .then(res => res.json())
-          .then(res => {
-            console.log(res)
-            
-            this.setState({ channels: [...res], channelShow: false }, () => this.rerenderChannels())
-
-          });
-
-      } else if (res === "ChannelAlreadyExists") {
-        console.log("CHANNEL ALREADY EXISTS")
-        // FEATURE: create bootstrap alert for this
-      } else {
-        console.log(res)
-      }
     })
+    const channel = await data.json()
+    if (channel === "Ok") {
+      this.getChannels();
+      this.setState({ channelShow: false })
+    } else {
+      // FEATURE: create bootstrap alert for this
+      console.log(channel)
+    }
 
   }
 
-  inviteUser = () => {
+  inviteUser = async () => {
     //This invites users
-    fetch(process.env.REACT_APP_API_URL + '/invite_user_to_group', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/invite_user_to_group', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -167,24 +145,19 @@ export default class Group extends Component {
         username: this.state.invite,
         group_name: this.props.groupName
       })
-    }).then(res =>
-      res.json()
-    ).then(res => {
-
-      //TODO: Convert all of these in the program with "switch" statements for all the errors as directed in the API Documentation
-      if (res === "Ok") {
-        console.log("USER " + this.state.invite + " INVITED")
-      } else if (res === "ChannelAlreadyExists") {
-        console.log("CHANNEL ALREADY EXISTS")
-        // FEATURE: create bootstrap alert for this
-      } else {
-        console.log(res)
-      }
     })
+    const invites = await data.json()
+    //TODO: Convert all of these in the program with "switch" statements for all the errors as directed in the API Documentation
+    if (invites === "Ok") {
+      console.log("USER " + this.state.invite + " INVITED")
+      // FEATURE: create bootstrap alert for this
+    } else {
+      console.log(invites)
+    }
   }
 
-  sendMessage = (e) => {
-    fetch(process.env.REACT_APP_API_URL + '/send_message', {
+  sendMessage = async (e) => {
+    await fetch(process.env.REACT_APP_API_URL + '/send_message', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -196,18 +169,13 @@ export default class Group extends Component {
         channel_name: this.state.currentChannel,
         message: this.state.currentMessage
       })
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      console.log(res)
-      //FIXME: This should be automatically rendered by the database pinging the client to reload
-      this.renderMessages(this.state.currentChannel)
-      this.setState({ currentMessage: '' })
     })
+    //FIXME: This should be automatically rendered by the database pinging the client to reload
+    this.renderMessages(this.state.currentChannel)
+    this.setState({ currentMessage: '' })
   }
 
   renderUsersPermission() {
-
     try {
       return (
         this.state.users.map((val, key) => {
@@ -228,8 +196,8 @@ export default class Group extends Component {
 
   }
 
-  renderUsers() {
-    fetch(process.env.REACT_APP_API_URL + '/get_users_in_group', {
+  async renderUsers() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_users_in_group', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -237,30 +205,26 @@ export default class Group extends Component {
       },
       credentials: 'include',
       body: JSON.stringify(this.props.groupName)
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      this.setState({ users: [...res] })
-    });
+    })
+    const users = await data.json()
+    this.setState({ users: [...users] })
   }
 
   handleNameChange = (e) => {
     this.setState({ name: e.target.value })
   }
-
   handleInviteChange = (e) => {
     this.setState({ invite: e.target.value })
   }
-
   handleMessageChange = (e) => {
     this.setState({ currentMessage: e.target.value })
   }
 
-  savePermissions = () => {
-    this.state.users.forEach(user => {
+  savePermissions = async () => {
+    this.state.users.forEach(async user => {
       //If user is selected. This, will add them
       if (document.getElementById(user).checked) {
-        fetch(process.env.REACT_APP_API_URL + '/add_user_to_channel', {
+        const data = await fetch(process.env.REACT_APP_API_URL + '/add_user_to_channel', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -272,16 +236,14 @@ export default class Group extends Component {
             group_name: this.props.groupName,
             channel_name: this.state.currentChannel
           })
-        }).then(res =>
-          res.json()
-        ).then(res => {
-          console.log(user + " add to the channel")
-          this.setState({ settingsShow: false })
-        });
+        })
+        const users = await data.json()
+        console.log(user + " " + users)
+        this.setState({ settingsShow: false })
         //And this will remove them. 
         // BUG: This removes admins included, and can remove the person who made it, this should be validated at a later stage
-      } else if(!document.getElementById(user).checked) {
-        fetch(process.env.REACT_APP_API_URL + '/remove_user_from_channel', {
+      } else if (!document.getElementById(user).checked) {
+        const data = await fetch(process.env.REACT_APP_API_URL + '/remove_user_from_channel', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -293,19 +255,17 @@ export default class Group extends Component {
             group_name: this.props.groupName,
             channel_name: this.state.currentChannel
           })
-        }).then(res =>
-          res.json()
-        ).then(res => {
-          console.log(user + " removed from channel")
-          this.setState({ settingsShow: false })
-        });
+        })
+        const users = await data.json()
+        console.log(user + " " + users)
+        this.setState({ settingsShow: false })
       }
     });
   }
 
-  deleteChannel = () => {
-
-    fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
+  //TODO: Add a confirmation for deletion
+  deleteChannel = async () => {
+    await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -316,51 +276,37 @@ export default class Group extends Component {
         channel_name: this.state.currentChannel,
         group_name: this.props.groupName
       })
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      console.log("Channel Deleted")
-      this.setState({ settingsShow: false });
-      this.rerenderChannels();
-    });
+    })
+    console.log(this.state.currentChannel + " Deleted")
+    this.setState({ settingsShow: false });
+    this.getChannels();
   }
 
-  leaveGroup = () => {
-    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+  //TODO: Add a confirmation for leaving
+  leaveGroup = async () => {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      console.log(res)
-      let user = res;
-      fetch(process.env.REACT_APP_API_URL + '/remove_user_from_group', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          username: user,
-          group_name: this.props.groupName
-        })
-      }).then(res =>
-        res.json()
-      ).then(res => {
-        console.log("Left Group")
-        // TODO: Refresh groups after user leaves
-        // TODO: add warning
-        // FIXME: Removing the admin means no admins are in this group now. fix permissions
-      });
-    });
-
-
-    
+    })
+    const username = await data.json()
+    await fetch(process.env.REACT_APP_API_URL + '/remove_user_from_group', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        username: username,
+        group_name: this.props.groupName
+      })
+    })
+    // TODO: Refresh groups after user leaves
+    // FIXME: Removing the admin means no admins are in this group now. fix permissions
   }
 
   renderItems() {
@@ -468,7 +414,7 @@ export default class Group extends Component {
           </Col>
         </Row>
         <Row>
-          
+
         </Row>
 
 

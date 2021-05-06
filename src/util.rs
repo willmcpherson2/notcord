@@ -111,6 +111,22 @@ pub fn init_database_file(path: &Path) {
                 time DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (ROWID),
                 FOREIGN KEY (channel_id) REFERENCES channels (ROWID) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS friendships (
+                user1_id INTEGER NOT NULL,
+                user2_id INTEGER NOT NULL,
+                PRIMARY KEY (requester_id, requestee_id),
+                FOREIGN KEY (requester_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (requestee_id) REFERENCES users (ROWID) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS friend_requests (
+                requester_id INTEGER NOT NULL,
+                requestee_id INTEGER NOT NULL,
+                PRIMARY KEY (requester_id, requestee_id),
+                FOREIGN KEY (requester_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (requestee_id) REFERENCES users (ROWID) ON DELETE CASCADE
             );",
         )
         .expect("bug: failed to create sqlite tables");
@@ -152,6 +168,8 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             get_users_in_channel,
             send_message,
             get_messages,
+            add_friend_request,
+            process_friend_request,
         ],
     )
 }

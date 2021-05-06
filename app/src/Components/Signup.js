@@ -14,14 +14,13 @@ export default class Login extends Component {
     }
   }
 
-
-  handleSubmit = (e) => {
+  handleSubmit = async () => {
     const { username, password, passConfirm } = this.state;
 
     if (password === passConfirm) {
 
       //This then posts the json of the username and password
-      fetch(process.env.REACT_APP_API_URL + '/signup', {
+      const data = await fetch(process.env.REACT_APP_API_URL + '/signup', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -32,43 +31,29 @@ export default class Login extends Component {
           password: password
         })
       })
-        //This part gets the response JSON body, and then logs that JSON.
-        .then(res =>{
-
-          res.json()
-        }
-          
-        )
-        .then(res => {
-          console.log(res)
-        })
+      const signup = await data.json();
+       //This part gets the response JSON body, and then logs that JSON.
+      if (signup === "Ok") {
+        console.log(signup + "fdfdf")
+      } else {
+        console.log(signup + "Dfsf")
+      }
+       
     } else {
       // FEATURE: create a bootstrap alert
       console.log("PASSWORDS DO NOT MATCH")
     }
-
-
-
-  }
-
+ }
 
   handleUserChange = (e) => {
     this.setState({ username: e.target.value })
   }
-
   handlePassChange = (e) => {
     this.setState({ password: e.target.value })
   }
-
   handlePassConfirmChange = (e) => {
     this.setState({ passConfirm: e.target.value })
   }
-
-  login = () => {
-    this.props.setView("login")
-  }
-
-
 
   render() {
     return (
@@ -80,7 +65,7 @@ export default class Login extends Component {
           <h2>Register to NotCord</h2>
         </Row>
         <Row className="justify-content-md-center">
-          <Form.Text className="text-muted">Already have an account? <button onClick={this.login}>Login Here</button></Form.Text><br></br>
+          <Form.Text className="text-muted">Already have an account? <button onClick={() => this.props.setView("login")}>Login Here</button></Form.Text><br></br>
         </Row>
         <Row className="justify-content-md-center">
           <Form>

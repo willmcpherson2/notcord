@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Form, Row} from 'react-bootstrap';
+import { Button, Container, Form, Row, Alert} from 'react-bootstrap';
 import Logo from '../notcord.png';
 import '../App.css'
 export default class Login extends Component {
@@ -8,7 +8,10 @@ export default class Login extends Component {
     this.state = {
       username: '',
       password: '',
-      shouldShowButton: true
+      shouldShowButton: true,
+      success: true,
+      alertMessage: '',
+      showAlert: false
     }
   }
 
@@ -34,8 +37,13 @@ export default class Login extends Component {
         this.props.setView("dashboard")
       } else {
         console.log(login)
+        this.setState({
+          alertMessage: "Username or Password is Incorrect",
+          showAlert: true,
+          success: false,
+          shouldShowButton: true
+        })
       }
-        // FEATURE: create bootstrap alert for errors / success
   }
 
   handleUserChange = (e) => {
@@ -43,6 +51,14 @@ export default class Login extends Component {
   }
   handlePassChange = (e) => {
     this.setState({ password: e.target.value })
+  }
+
+  alert() {
+    return (
+      <Alert variant={this.state.success ? 'success' : 'danger'} onClose={() => this.setState({ showAlert: false })} dismissible>
+        {this.state.alertMessage}
+      </Alert>
+    );
   }
 
   render() {
@@ -54,11 +70,12 @@ export default class Login extends Component {
         <Row className="justify-content-md-center">
           <h2>NotCord Login</h2>
         </Row>
+        <Row className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</Row>
         <Row className="justify-content-md-center">
           <Form.Text className="text-muted">Don't have an account? <button onClick={() => this.props.setView("signup")}>Register Here</button></Form.Text><br></br>
         </Row>
         <Row className="justify-content-md-center">
-          <Form>
+          <Form id="notcordLogin">
             <Form.Group controlId="formUsername">
               <Form.Control type="text" placeholder="Username" value={this.state.username} onChange={this.handleUserChange}></Form.Control>
             </Form.Group>

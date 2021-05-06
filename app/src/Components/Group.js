@@ -23,7 +23,13 @@ export default class Group extends Component {
 
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
   componentDidMount() {
-    this.rerenderChannels();
+    // BUG: Channels not being got from the server. Could be an error with front end or back end.
+    fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', { method: 'POST', credentials: 'include', body: JSON.stringify(this.props.groupName) })
+      .then(res => res.json())
+      .then(res => {
+        this.setState({ channels: [...res] })
+        console.log(this.props.groupName)
+      });
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -35,6 +41,8 @@ export default class Group extends Component {
         .then(res => res.json())
         .then(res => {
           this.setState({ channels: [...res] })
+          console.log(this.props.groupName)
+          console.log(this.state.channels)
         });
 
       if (this.state.currentChannel !== null) {

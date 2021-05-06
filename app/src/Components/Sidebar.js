@@ -2,7 +2,7 @@ import { Component } from 'react';
 import { Button, Container, Row, OverlayTrigger, Tooltip, Modal, Form } from 'react-bootstrap';
 import '../App.css'
 import Logo from '../notcord.png'
-import {GearIcon, PlusIcon} from '@primer/octicons-react'
+import {GearIcon, PlusIcon, SignOutIcon} from '@primer/octicons-react'
 
 export default class Sidebar extends Component {
   constructor(props) {
@@ -105,6 +105,22 @@ export default class Sidebar extends Component {
 
   }
 
+  logout = () => {
+    fetch(process.env.REACT_APP_API_URL + '/logout', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    }).then(res =>
+      res.json()
+    ).then(res => {
+      console.log(res)
+      window.location.reload(true);
+    })
+  }
+
   render() {
     return (
       <Container fluid className="sidebar">
@@ -133,7 +149,8 @@ export default class Sidebar extends Component {
         {this.renderGroups()}
         <Row>
           <button className="groupButton Settings" onClick={() => { this.setState({ show: true }) }}><PlusIcon size={24} /></button>
-          <button className="groupButton Settings bottom" onClick={this.settings}><GearIcon size={24} /></button>
+          <button className="groupButton Settings" onClick={this.settings}><GearIcon size={24} /></button>
+          <button className="groupButton Settings bottom" onClick={this.logout}><SignOutIcon size={24} /></button>
         </Row>
 
       </Container>

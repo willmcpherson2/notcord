@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Row, Modal, Form } from 'react-bootstrap';
+import { Button, Container, Row, Modal, Form, Alert } from 'react-bootstrap';
 import '../App.css'
 export default class Settings extends Component {
   constructor(props) {
@@ -8,59 +8,16 @@ export default class Settings extends Component {
       username: 'default',
       inviteShow: false,
       invites: [],
-      selectedFile: null
+      selectedFile: null,
+      success: false,
+      showAlert: false,
+      alertMessage: ''
     }
   }
 
-  acceptInvite(group) {
-    //This invites users
-    console.log(group)
-    fetch(process.env.REACT_APP_API_URL + '/accept_invite', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(group.toString())
-    }).then(res =>
-      res.json()
-    ).then(res => {
-
-      //TODO: Convert all of these in the program with "switch" statements for all the errors as directed in the API Documentation
-      if (res === "Ok") {
-        console.log("INVITE ACCEPTED")
-        this.getInvites()
-        this.setState({ inviteShow: false })
-      } else if (res === "ChannelAlreadyExists") {
-        console.log("CHANNEL ALREADY EXISTS")
-        // FEATURE: create bootstrap alert for this
-      } else {
-        console.log(res)
-      }
-    })
-  }
-
-  getInvites() {
-    //This gets the invitations
-    fetch(process.env.REACT_APP_API_URL + '/get_invites', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify("Group1")
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      this.setState({ invites: res })
-    })
-  }
-
-  componentDidMount() {
+  async componentDidMount() {
     //This gets the avatar
-    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -68,12 +25,55 @@ export default class Settings extends Component {
       },
       credentials: 'include',
       body: JSON.stringify()
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      this.setState({ username: res})
     })
+    const username = await data.json()
+    this.setState({ username: username })
     this.getInvites();
+  }
+
+  async getInvites() {
+    //This gets the invitations
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_invites', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify("Group1")
+    })
+    const invites = await data.json()
+    this.setState({ invites: invites })
+  }
+
+  async acceptInvite(group) {
+    //This invites users
+    const data = await fetch(process.env.REACT_APP_API_URL + '/accept_invite', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(group.toString())
+    })
+    const accept = data.json();
+    if (accept === "Ok") {
+      console.log("INVITE ACCEPTED")
+      this.getInvites()
+      this.setState({
+        alertMessage: "Invitation Accepted",
+        showAlert: true,
+        success: true,
+      })
+    } else {
+      console.log(accept)
+      this.setState({
+        alertMessage: accept,
+        showAlert: true,
+        success: false,
+      })
+    }
   }
 
   renderInvites() {
@@ -90,6 +90,7 @@ export default class Settings extends Component {
     }
   }
 
+  // BUG: Setting this async stops is from working. The await res.blob() throws an error for some reason. 
   renderAvatar() {
     //This gets the avatar
     fetch(process.env.REACT_APP_API_URL + '/get_avatar', {
@@ -102,6 +103,7 @@ export default class Settings extends Component {
     }).then(res =>
       res.blob()
     ).then(res => {
+      console.log(res)
       const urlCreator = window.URL || window.webkitURL;
       const url = urlCreator.createObjectURL(res);
       const avatar = document.getElementById('avatar');
@@ -114,9 +116,9 @@ export default class Settings extends Component {
 
   }
 
-  newAvatar() {
+  async newAvatar() {
     //This sets the avatar
-    fetch(process.env.REACT_APP_API_URL + '/set_avatar', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/set_avatar', {
       method: 'POST',
       headers: {
         'Accept': 'image/png',
@@ -124,12 +126,17 @@ export default class Settings extends Component {
       },
       credentials: 'include',
       body: this.state.selectedFile
-    }).then(res => {
-      console.log(res)
-      this.renderAvatar()
-    }
-      
-    )
+    })
+    const setAvatar = await data.json();
+    this.renderAvatar();
+  }
+
+  alert() {
+    return (
+      <Alert variant={this.state.success ? 'success' : 'danger'} onClose={() => this.setState({ showAlert: false })} dismissible>
+        {this.state.alertMessage}
+      </Alert>
+    );
   }
 
   render() {
@@ -160,11 +167,11 @@ export default class Settings extends Component {
           {this.renderAvatar()}
           <Form>
             <Form.Group>
-              <Form.File id="setNewAvatar" label="Set New Avatar" onChange={this.handleFileChange}/>
+              <Form.File id="setNewAvatar" label="Set New Avatar" onChange={this.handleFileChange} />
             </Form.Group>
-            <Button variant="secondary" onClick={() => {this.newAvatar()}}>Save</Button>
+            <Button variant="secondary" onClick={() => { this.newAvatar() }}>Save</Button>
           </Form>
-          
+
         </Row>
       </Container>
     );

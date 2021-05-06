@@ -116,9 +116,9 @@ pub fn init_database_file(path: &Path) {
             CREATE TABLE IF NOT EXISTS friendships (
                 user1_id INTEGER NOT NULL,
                 user2_id INTEGER NOT NULL,
-                PRIMARY KEY (requester_id, requestee_id),
-                FOREIGN KEY (requester_id) REFERENCES users (ROWID) ON DELETE CASCADE,
-                FOREIGN KEY (requestee_id) REFERENCES users (ROWID) ON DELETE CASCADE
+                PRIMARY KEY (user1_id, user2_id),
+                FOREIGN KEY (user1_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (user2_id) REFERENCES users (ROWID) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS friend_requests (

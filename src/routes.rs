@@ -917,14 +917,14 @@ pub fn process_friend_request(
     let requestee_id = util::get_logged_in_user_id(&mut cookies)?;
     let requester_id: i64 = query_row!(
         database,
-        "SELECT ROWID FROM groups WHERE name=?1",
+        "SELECT ROWID FROM users WHERE username=?1",
         &process_friend_request.username
     )
     .map_err(|_| Err::UserDoesNotExist)?;
 
     let invite_already_exists = exists!(
         database,
-        "SELECT * FROM friend_requests WHERE user1_id=?1 AND user2_id=?2",
+        "SELECT * FROM friend_requests WHERE requester_id=?1 AND requestee_id=?2",
         &requester_id,
         &requestee_id
         );
@@ -944,7 +944,7 @@ pub fn process_friend_request(
 
     execute!(
         database,
-        "DELETE FROM friend_requests WHERE user1_id=?1 AND user2_id=?2",
+        "DELETE FROM friend_requests WHERE requester_id=?1 AND requestee_id=?2",
         &requester_id,
         &requestee_id
         );

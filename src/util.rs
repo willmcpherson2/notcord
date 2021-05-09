@@ -170,7 +170,8 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             get_messages,
             add_friend_request,
             process_friend_request,
-            delete_friendship
+            delete_friendship,
+            get_friends_for_user,
         ],
     )
 }

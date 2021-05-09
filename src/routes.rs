@@ -1001,3 +1001,18 @@ pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Datab
     }
     ok!()
 }
+
+#[post("/get_friends_for_user")]
+pub fn get_friends_for_user(mut cookies: Cookies, database: Database) -> Response {
+    let logged_user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let usernames: Vec<String> = query_rows!(
+        database,
+        "Select username From users WHERE ROWID IN 
+            (SELECT user1_id FROM friendships WHERE user2_id=?1 
+            UNION
+            SELECT user2_id FROM friendships WHERE user1_id=?1);",
+        &logged_user_id);
+
+    ok!(Ok::Usernames(usernames))
+}

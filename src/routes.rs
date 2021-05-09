@@ -952,3 +952,52 @@ pub fn process_friend_request(
     ok!()
 
 }
+
+#[post("/delete_friendship", data="<user>")]
+pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
+    let logged_user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user.into_inner()
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let friendship1_exists = exists!(
+        database,
+        "SELECT * FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+        &logged_user_id,
+        &user_id
+    );
+
+    let friendship2_exists = exists!(
+        database,
+        "SELECT * FROM friendships WHERE user1_id=?2 AND user2_id=?1",
+        &logged_user_id,
+        &user_id
+    );
+
+
+    if !friendship1_exists && !friendship2_exists {
+        return err!(Err::FrendshipDoesntExists)
+    }
+
+    if friendship1_exists {
+        execute!(
+        database,
+        "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+        &logged_user_id,
+        &user_id
+        );
+    }
+    else if friendship2_exists {
+        execute!(
+        database,
+        "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+        &user_id,
+        &logged_user_id
+        );
+    }
+    ok!()
+}

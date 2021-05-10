@@ -44,7 +44,7 @@ pub struct GroupChannelMessage {
 #[derive(Deserialize)]
 pub struct ProcessFriendRequest {
     username: String,
-    response: bool, 
+    response: bool,
 }
 
 #[derive(Serialize)]
@@ -109,7 +109,7 @@ pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Re
 }
 
 #[post("/logout")]
-pub fn logout(mut cookies:Cookies) -> Response {
+pub fn logout(mut cookies: Cookies) -> Response {
     util::get_logged_in_user_id(&mut cookies)?;
 
     cookies.remove_private(Cookie::named("user_id"));
@@ -190,7 +190,7 @@ pub fn invite_user_to_group(
     user_and_group: Json<UserAndGroup>,
     database: Database,
     mut cookies: Cookies,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -295,7 +295,11 @@ pub fn accept_invite(group_name: Json<&str>, mut cookies: Cookies, database: Dat
 }
 
 #[post("/remove_user_from_group", data = "<user_and_group>")]
-pub fn remove_user_from_group(user_and_group: Json<UserAndGroup>, database: Database, mut cookies: Cookies) -> Response {
+pub fn remove_user_from_group(
+    user_and_group: Json<UserAndGroup>,
+    database: Database,
+    mut cookies: Cookies,
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -399,7 +403,7 @@ pub fn add_channel_to_group(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -466,7 +470,7 @@ pub fn remove_channel_from_group(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -500,7 +504,7 @@ pub fn remove_channel_from_group(
         database,
         "DELETE FROM channels WHERE name=?1",
         &channel_and_group.channel_name
-    );  
+    );
 
     ok!()
 }
@@ -510,7 +514,7 @@ pub fn add_user_to_channel(
     user_group_channel: Json<UserGroupChannel>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -579,7 +583,7 @@ pub fn remove_user_from_channel(
     user_group_channel: Json<UserGroupChannel>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -643,7 +647,6 @@ pub fn remove_user_from_channel(
         &channel_id
     );
 
-
     ok!()
 }
 
@@ -652,7 +655,7 @@ pub fn get_users_in_channel(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -708,7 +711,7 @@ pub fn get_channels_in_group(
     group_name: Json<&str>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -750,7 +753,7 @@ pub fn send_message(
     group_channel_message: Json<GroupChannelMessage>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -805,7 +808,7 @@ pub fn get_messages(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -895,7 +898,7 @@ pub fn add_friend_request(user: Json<&str>, mut cookies: Cookies, database: Data
         );
 
     if friendship_already_exists {
-        return err!(Err::FrendshipAlreadyExists)
+        return err!(Err::FrendshipAlreadyExists);
     }
 
     execute!(
@@ -903,17 +906,17 @@ pub fn add_friend_request(user: Json<&str>, mut cookies: Cookies, database: Data
         "INSERT INTO friend_requests (requester_id, requestee_id) VALUES (?1, ?2)",
         &requester_id,
         &requestee_id
-        );
+    );
 
     ok!()
 }
 
 #[post("/proccess_friend_request", data = "<process_friend_request>")]
 pub fn process_friend_request(
-    process_friend_request: Json<ProcessFriendRequest>, 
-    mut cookies: Cookies, 
-    database: Database) -> Response {
-
+    process_friend_request: Json<ProcessFriendRequest>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
     let requestee_id = util::get_logged_in_user_id(&mut cookies)?;
     let requester_id: i64 = query_row!(
         database,
@@ -927,18 +930,18 @@ pub fn process_friend_request(
         "SELECT * FROM friend_requests WHERE requester_id=?1 AND requestee_id=?2",
         &requester_id,
         &requestee_id
-        );
+    );
 
     if !invite_already_exists {
-        return err!(Err::InviteDoesNotExist)
+        return err!(Err::InviteDoesNotExist);
     }
 
     if process_friend_request.response {
         execute!(
-        database,
-        "INSERT INTO friendships (user1_id, user2_id) VALUES (?1, ?2)",
-        &requester_id,
-        &requestee_id
+            database,
+            "INSERT INTO friendships (user1_id, user2_id) VALUES (?1, ?2)",
+            &requester_id,
+            &requestee_id
         );
     }
 
@@ -947,13 +950,12 @@ pub fn process_friend_request(
         "DELETE FROM friend_requests WHERE requester_id=?1 AND requestee_id=?2",
         &requester_id,
         &requestee_id
-        );
+    );
 
     ok!()
-
 }
 
-#[post("/delete_friendship", data="<user>")]
+#[post("/delete_friendship", data = "<user>")]
 pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
     let logged_user_id = util::get_logged_in_user_id(&mut cookies)?;
 
@@ -978,25 +980,23 @@ pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Datab
         &user_id
     );
 
-
     if !friendship1_exists && !friendship2_exists {
-        return err!(Err::FrendshipDoesntExists)
+        return err!(Err::FrendshipDoesntExists);
     }
 
     if friendship1_exists {
         execute!(
-        database,
-        "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
-        &logged_user_id,
-        &user_id
+            database,
+            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+            &logged_user_id,
+            &user_id
         );
-    }
-    else if friendship2_exists {
+    } else if friendship2_exists {
         execute!(
-        database,
-        "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
-        &user_id,
-        &logged_user_id
+            database,
+            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+            &user_id,
+            &logged_user_id
         );
     }
     ok!()
@@ -1012,7 +1012,8 @@ pub fn get_friends_for_user(mut cookies: Cookies, database: Database) -> Respons
             (SELECT user1_id FROM friendships WHERE user2_id=?1 
             UNION
             SELECT user2_id FROM friendships WHERE user1_id=?1);",
-        &logged_user_id);
+        &logged_user_id
+    );
 
     ok!(Ok::Usernames(usernames))
 }

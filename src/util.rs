@@ -111,6 +111,22 @@ pub fn init_database_file(path: &Path) {
                 time DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (ROWID),
                 FOREIGN KEY (channel_id) REFERENCES channels (ROWID) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS friendships (
+                user1_id INTEGER NOT NULL,
+                user2_id INTEGER NOT NULL,
+                PRIMARY KEY (user1_id, user2_id),
+                FOREIGN KEY (user1_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (user2_id) REFERENCES users (ROWID) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS friend_requests (
+                requester_id INTEGER NOT NULL,
+                requestee_id INTEGER NOT NULL,
+                PRIMARY KEY (requester_id, requestee_id),
+                FOREIGN KEY (requester_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (requestee_id) REFERENCES users (ROWID) ON DELETE CASCADE
             );",
         )
         .expect("bug: failed to create sqlite tables");
@@ -133,6 +149,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             files,
             signup,
             login,
+            logout,
             get_username,
             set_avatar,
             get_avatar,
@@ -140,14 +157,21 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             invite_user_to_group,
             get_invites,
             accept_invite,
+            remove_user_from_group,
             get_users_in_group,
             add_channel_to_group,
+            remove_channel_from_group,
             add_user_to_channel,
+            remove_user_from_channel,
             get_groups_for_user,
             get_channels_in_group,
             get_users_in_channel,
             send_message,
             get_messages,
+            add_friend_request,
+            process_friend_request,
+            delete_friendship,
+            get_friends_for_user,
         ],
     )
 }

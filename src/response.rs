@@ -51,6 +51,10 @@ pub enum Err {
     InviteDoesNotExist,
     NotLoggedIn,
     PermissionDenied,
+    CannotBeOwnFriend,
+    InviteAlreadyExists,
+    FrendshipAlreadyExists,
+    FrendshipDoesntExists,
 }
 
 impl<'r> Responder<'r> for Response {

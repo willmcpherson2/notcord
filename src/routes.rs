@@ -41,6 +41,12 @@ pub struct GroupChannelMessage {
     message: String,
 }
 
+#[derive(Deserialize)]
+pub struct ProcessFriendRequest {
+    username: String,
+    response: bool,
+}
+
 #[derive(Serialize)]
 pub struct Message {
     message: String,
@@ -99,6 +105,14 @@ pub fn login(login: Json<Login>, database: Database, mut cookies: Cookies) -> Re
     }
 
     cookies.add_private(Cookie::new("user_id", user_id.to_string()));
+    ok!()
+}
+
+#[post("/logout")]
+pub fn logout(mut cookies: Cookies) -> Response {
+    util::get_logged_in_user_id(&mut cookies)?;
+
+    cookies.remove_private(Cookie::named("user_id"));
     ok!()
 }
 
@@ -280,6 +294,67 @@ pub fn accept_invite(group_name: Json<&str>, mut cookies: Cookies, database: Dat
     ok!()
 }
 
+#[post("/remove_user_from_group", data = "<user_and_group>")]
+pub fn remove_user_from_group(
+    user_and_group: Json<UserAndGroup>,
+    database: Database,
+    mut cookies: Cookies,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &user_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_and_group.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        if admin_id != user_id {
+            return err!(Err::PermissionDenied);
+        }
+    }
+
+    execute!(
+        database,
+        "DELETE FROM group_members WHERE user_id=?1 AND group_id =?2",
+        &user_id,
+        &group_id
+    );
+
+    execute!(
+        database,
+        "DELETE FROM channel_members WHERE user_id=?1 AND channel_id IN (SELECT channel_id FROM group_members WHERE group_id=?2)",
+        &user_id,
+        &group_id
+    );
+
+    ok!()
+}
+
 #[post("/get_users_in_group", data = "<name>")]
 pub fn get_users_in_group(name: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
@@ -390,6 +465,50 @@ pub fn add_channel_to_group(
     ok!()
 }
 
+#[post("/remove_channel_from_group", data = "<channel_and_group>")]
+pub fn remove_channel_from_group(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &channel_and_group.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        return err!(Err::PermissionDenied);
+    }
+
+    let channel_in_group_exists = exists!(
+        database,
+        "SELECT * FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &channel_and_group.channel_name,
+        &group_id
+    );
+    if !channel_in_group_exists {
+        return err!(Err::ChannelDoesNotExist);
+    }
+
+    execute!(
+        database,
+        "DELETE FROM channels WHERE name=?1",
+        &channel_and_group.channel_name
+    );
+
+    ok!()
+}
+
 #[post("/add_user_to_channel", data = "<user_group_channel>")]
 pub fn add_user_to_channel(
     user_group_channel: Json<UserGroupChannel>,
@@ -456,6 +575,78 @@ pub fn add_user_to_channel(
         &user_id,
         &channel_id
     );
+    ok!()
+}
+
+#[post("/remove_user_from_channel", data = "<user_group_channel>")]
+pub fn remove_user_from_channel(
+    user_group_channel: Json<UserGroupChannel>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let admin_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let group_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM groups WHERE name=?1",
+        &user_group_channel.group_name
+    )
+    .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_group_channel.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let is_admin = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2 AND is_admin=1",
+        &admin_id,
+        &group_id
+    );
+    if !is_admin {
+        if user_id != admin_id {
+            return err!(Err::PermissionDenied);
+        }
+    }
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channels.ROWID FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        &user_group_channel.channel_name,
+        &group_id
+    )
+    .map_err(|_| Err::ChannelDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
+
+    let user_in_channel = exists!(
+        database,
+        "SELECT * FROM channel_members WHERE user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+    if !user_in_channel {
+        return err!(Err::UserNotInChannel);
+    }
+
+    execute!(
+        database,
+        "DELETE FROM channel_members where user_id=?1 AND channel_id=?2",
+        &user_id,
+        &channel_id
+    );
+
     ok!()
 }
 
@@ -671,4 +862,158 @@ pub fn get_messages(
     );
 
     ok!(Ok::Messages(messages))
+}
+
+#[post("/add_friend_request", data = "<user>")]
+pub fn add_friend_request(user: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
+    let requester_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let requestee_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user.into_inner()
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    if requester_id == requestee_id {
+        return err!(Err::CannotBeOwnFriend);
+    }
+
+    let invite_already_exists = exists!(
+        database,
+        "SELECT * FROM friend_requests WHERE (requester_id=?1 AND requestee_id=?2) OR (requester_id=?2 AND requestee_id=?1)",
+        &requester_id,
+        &requestee_id
+        );
+
+    if invite_already_exists {
+        return err!(Err::InviteAlreadyExists);
+    }
+
+    let friendship_already_exists = exists!(
+        database,
+        "SELECT * FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?2 AND user2_id=?1)",
+        &requester_id,
+        &requestee_id
+        );
+
+    if friendship_already_exists {
+        return err!(Err::FrendshipAlreadyExists);
+    }
+
+    execute!(
+        database,
+        "INSERT INTO friend_requests (requester_id, requestee_id) VALUES (?1, ?2)",
+        &requester_id,
+        &requestee_id
+    );
+
+    ok!()
+}
+
+#[post("/proccess_friend_request", data = "<process_friend_request>")]
+pub fn process_friend_request(
+    process_friend_request: Json<ProcessFriendRequest>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let requestee_id = util::get_logged_in_user_id(&mut cookies)?;
+    let requester_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &process_friend_request.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let invite_already_exists = exists!(
+        database,
+        "SELECT * FROM friend_requests WHERE requester_id=?1 AND requestee_id=?2",
+        &requester_id,
+        &requestee_id
+    );
+
+    if !invite_already_exists {
+        return err!(Err::InviteDoesNotExist);
+    }
+
+    if process_friend_request.response {
+        execute!(
+            database,
+            "INSERT INTO friendships (user1_id, user2_id) VALUES (?1, ?2)",
+            &requester_id,
+            &requestee_id
+        );
+    }
+
+    execute!(
+        database,
+        "DELETE FROM friend_requests WHERE requester_id=?1 AND requestee_id=?2",
+        &requester_id,
+        &requestee_id
+    );
+
+    ok!()
+}
+
+#[post("/delete_friendship", data = "<user>")]
+pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
+    let logged_user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user.into_inner()
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let friendship1_exists = exists!(
+        database,
+        "SELECT * FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+        &logged_user_id,
+        &user_id
+    );
+
+    let friendship2_exists = exists!(
+        database,
+        "SELECT * FROM friendships WHERE user1_id=?2 AND user2_id=?1",
+        &logged_user_id,
+        &user_id
+    );
+
+    if !friendship1_exists && !friendship2_exists {
+        return err!(Err::FrendshipDoesntExists);
+    }
+
+    if friendship1_exists {
+        execute!(
+            database,
+            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+            &logged_user_id,
+            &user_id
+        );
+    } else if friendship2_exists {
+        execute!(
+            database,
+            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+            &user_id,
+            &logged_user_id
+        );
+    }
+    ok!()
+}
+
+#[post("/get_friends_for_user")]
+pub fn get_friends_for_user(mut cookies: Cookies, database: Database) -> Response {
+    let logged_user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let usernames: Vec<String> = query_rows!(
+        database,
+        "Select username From users WHERE ROWID IN 
+            (SELECT user1_id FROM friendships WHERE user2_id=?1 
+            UNION
+            SELECT user2_id FROM friendships WHERE user1_id=?1);",
+        &logged_user_id
+    );
+
+    ok!(Ok::Usernames(usernames))
 }

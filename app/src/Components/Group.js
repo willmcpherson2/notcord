@@ -1,4 +1,4 @@
-import { React, Component } from 'react';
+import { React, Component, useEffect } from 'react';
 import { Button, Form, Row, Col, Modal } from 'react-bootstrap';
 import { GearIcon } from '@primer/octicons-react';
 import '../App.css'
@@ -16,8 +16,10 @@ export default class Group extends Component {
       currentMessage: '',
       currentChannel: '',
       usersInChannel: [],
-      users: []
-
+      users: [],
+      leaveGroupShow: false,
+      deleteChannelShow: false,
+      time: Date.now()
     }
   }
 
@@ -51,6 +53,7 @@ export default class Group extends Component {
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
   componentDidMount() {
     this.getChannels();
+    this.constantRender()
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -101,7 +104,34 @@ export default class Group extends Component {
     })
     const messages = await data.json()
     this.setState({ messages: messages })
+  }
 
+  renderItems() {
+    try {
+      return (
+        this.state.messages.map((val, key) => {
+          const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+          ];
+          let time = new Date(val.time + " UTC");
+          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          return (
+            // TODO: Fix this to make it look good lol
+            <p key={key}><span>({date})</span><blue>{val.username}</blue>: {val.message}</p>
+          )
+        })
+      )
+    } catch (error) {
+    }
+
+  }
+
+  //This rerenders the chat box so messages are displayed. It's quite nice.
+  constantRender() {
+    setInterval(() => {
+      this.renderMessages(this.state.currentChannel)
+      this.renderItems();
+    }, 5000);
   }
 
 
@@ -170,7 +200,6 @@ export default class Group extends Component {
         message: this.state.currentMessage
       })
     })
-    //FIXME: This should be automatically rendered by the database pinging the client to reload
     this.renderMessages(this.state.currentChannel)
     this.setState({ currentMessage: '' })
   }
@@ -263,7 +292,7 @@ export default class Group extends Component {
     });
   }
 
-  //TODO: Add a confirmation for deletion
+  //TODO: Ensure at least 1 channel remains at all times.
   deleteChannel = async () => {
     await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
       method: 'POST',
@@ -278,7 +307,7 @@ export default class Group extends Component {
       })
     })
     console.log(this.state.currentChannel + " Deleted")
-    this.setState({ settingsShow: false });
+    this.setState({ settingsShow: false, deleteChannelShow: false });
     this.getChannels();
   }
 
@@ -305,27 +334,9 @@ export default class Group extends Component {
         group_name: this.props.groupName
       })
     })
+    window.location.reload();
     // TODO: Refresh groups after user leaves
     // FIXME: Removing the admin means no admins are in this group now. fix permissions
-  }
-
-  renderItems() {
-    try {
-      return (
-        this.state.messages.map((val, key) => {
-          const monthNames = ["January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-          ];
-          let time = new Date(val.time + " UTC");
-          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
-          return (
-            <p key={key}><span>({date})</span><blue>{val.username}</blue>: {val.message}</p>
-          )
-        })
-      )
-    } catch (error) {
-    }
-
   }
 
 
@@ -346,7 +357,7 @@ export default class Group extends Component {
                 <Form.Label>Allow:</Form.Label>
                 {this.renderUsersPermission()}
               </Form.Group>
-              <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
+              <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={() => this.setState({ deleteChannelShow: true })}>Delete Channel</Button>
             </Form>
 
           </Modal.Body>
@@ -388,6 +399,34 @@ export default class Group extends Component {
 
           </Modal.Body>
         </Modal>
+
+        {/**Delete Channel Confirm */}
+        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete Channel</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to delete this channel? This action is unreversable.
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/**Leave Group Confirm */}
+        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Leave Group</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to leave this group? This action is unreversable. You will need to be invited again to rejoin.
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="danger" onClick={this.leaveGroup}>Leave Group</Button>
+          </Modal.Footer>
+        </Modal>
+
+
         {/* // using className "navbar" completely destroys all the CSS so navigation must be used instead.*/}
         <Row>
           <Col sm={3} className="navigation">
@@ -395,7 +434,7 @@ export default class Group extends Component {
 
             {this.renderChannels()}
             <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
-            <Button onClick={this.leaveGroup} variant="danger">Leave Group</Button>
+            <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
           </Col>
 
 
@@ -407,7 +446,7 @@ export default class Group extends Component {
             <div>{this.renderItems()}</div>
             <Form>
               <Form.Group controlId="formMessage">
-                <Form.Control type="text" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                <Form.Control type="text" autocomplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
               </Form.Group>
               <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
             </Form>

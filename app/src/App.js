@@ -16,21 +16,17 @@ export default class App extends Component {
     }
   }
 
-  componentDidMount() {
-    console.log("COMPONENT MOUNTING")
-    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+  async componentDidMount() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
       credentials: 'include'
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      if(res !== "NotLoggedIn"){
-        console.log(res)
+    })
+    const username = data.json()
+      if(username !== "NotLoggedIn"){
         this.setState({userLoggedIn: true})
       } else {
-        console.log(res + "NOT WORKING")
+        console.log(username)
       }
-    })
   }
 
 updateView = (view) => {
@@ -41,17 +37,13 @@ group = (group) => {
   this.setState({ group: group })
 }
 
-loggedIn = (e) => {
+loggedIn = async (e) => {
   if (e) {
-    fetch(process.env.REACT_APP_API_URL + '/get_username', {
+    await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
       credentials: 'include'
-    }).then(res =>
-      res.json()
-    ).then(res => {
-      this.setState({ userLoggedIn: true })
-      console.log("Welcome back " + res)
     })
+    this.setState({ userLoggedIn: true })
   }
 
 }

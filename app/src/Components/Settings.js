@@ -29,6 +29,7 @@ export default class Settings extends Component {
     const username = await data.json()
     this.setState({ username: username })
     this.getInvites();
+    this.renderAvatar();
   }
 
   async getInvites() {
@@ -90,25 +91,21 @@ export default class Settings extends Component {
     }
   }
 
-  // BUG: Setting this async stops is from working. The await res.blob() throws an error for some reason. 
-  renderAvatar() {
+  async renderAvatar() {
     //This gets the avatar
-    fetch(process.env.REACT_APP_API_URL + '/get_avatar', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_avatar', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',
       body: JSON.stringify(this.state.username)
-    }).then(res =>
-      res.blob()
-    ).then(res => {
-      console.log(res)
-      const urlCreator = window.URL || window.webkitURL;
-      const url = urlCreator.createObjectURL(res);
-      const avatar = document.getElementById('avatar');
-      avatar.src = url;
     })
+    const image = await data.blob()
+    const urlCreator = window.URL || window.webkitURL;
+    const url = urlCreator.createObjectURL(image);
+    const avatar = document.getElementById('avatar');
+    avatar.src = url;
   }
 
   handleFileChange = (e) => {
@@ -118,7 +115,7 @@ export default class Settings extends Component {
 
   async newAvatar() {
     //This sets the avatar
-    const data = await fetch(process.env.REACT_APP_API_URL + '/set_avatar', {
+    await fetch(process.env.REACT_APP_API_URL + '/set_avatar', {
       method: 'POST',
       headers: {
         'Accept': 'image/png',
@@ -127,7 +124,6 @@ export default class Settings extends Component {
       credentials: 'include',
       body: this.state.selectedFile
     })
-    const setAvatar = await data.json();
     this.renderAvatar();
   }
 
@@ -164,7 +160,6 @@ export default class Settings extends Component {
         <Row>
           <h1>Avatar:</h1>
           <img id="avatar" width="64" height="64" alt="Avatar"></img>
-          {this.renderAvatar()}
           <Form>
             <Form.Group>
               <Form.File id="setNewAvatar" label="Set New Avatar" onChange={this.handleFileChange} />

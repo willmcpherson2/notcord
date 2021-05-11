@@ -5,6 +5,7 @@ import Sidebar from './Components/Sidebar';
 import Signup from './Components/Signup'
 import Settings from './Components/Settings';
 import Group from './Components/Group';
+import './App.css';
 
 export default class App extends Component {
   constructor(props) {
@@ -54,13 +55,13 @@ renderComponents() {
     switch (view) {
 
       case "dashboard":
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Settings setView={this.updateView} /></Col></Row></Container>
       case "settings":
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Settings setView={this.updateView} /></Col></Row></Container>
       case "group":
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Group groupName={this.state.group} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Group groupName={this.state.group} /></Col></Row></Container>
       default:
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col><Settings setView={this.updateView} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Settings setView={this.updateView} /></Col></Row></Container>
     }
 
   } else {
@@ -77,7 +78,7 @@ renderComponents() {
 
 render() {
   return (
-    <Container fluid>
+    <Container fluid className="App">
       {this.renderComponents()}
     </Container>
   );

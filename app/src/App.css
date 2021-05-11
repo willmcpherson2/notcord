@@ -3,12 +3,17 @@
 }
 
 .App {
-  border: 2px solid black;
   font-family: 'Ubuntu', sans-serif;
+  flex-wrap: none; 
+  min-width: 770px;
 }
 
 .nopadding {
   padding-left: 0px;
+}
+
+.noRight {
+  padding-right: 0;
 }
 
 /*CSS For the Login Page*/
@@ -318,4 +323,15 @@ div Sidebar {
 
 .group p blue {
   color: #1100ff;
+}
+
+.messages {
+  height: calc(100vh - 50px);
+  overflow-y: scroll;
+}
+
+.messageBox {
+  width: 95%;
+  position: absolute;
+  bottom: 20px;
 }

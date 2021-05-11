@@ -120,7 +120,7 @@ export default class Group extends Component {
           let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
           return (
             // TODO: Fix this to make it look good lol
-            <p key={key}><span>({date})</span><blue>{val.username}</blue>: {val.message}</p>
+            <p key={key}><span>({date})</span><strong>{val.username}</strong>: {val.message}</p>
           )
         })
       )
@@ -128,7 +128,6 @@ export default class Group extends Component {
     }
 
   }
-
   //This rerenders the chat box so messages are displayed. It's quite nice.
   constantRender() {
     reRender = setInterval(() => {
@@ -136,11 +135,9 @@ export default class Group extends Component {
       this.renderItems();
     }, 5000);
   }
-
   componentWillUnmount(){
     clearInterval(reRender);
   }
-
   createChannel = async () => {
     const { name } = this.state;
 
@@ -166,7 +163,6 @@ export default class Group extends Component {
     }
 
   }
-
   inviteUser = async () => {
     //This invites users
     const data = await fetch(process.env.REACT_APP_API_URL + '/invite_user_to_group', {
@@ -196,7 +192,6 @@ export default class Group extends Component {
       })
     }
   }
-
   sendMessage = async (e) => {
     await fetch(process.env.REACT_APP_API_URL + '/send_message', {
       method: 'POST',
@@ -214,7 +209,6 @@ export default class Group extends Component {
     this.renderMessages(this.state.currentChannel)
     this.setState({ currentMessage: '' })
   }
-
   renderUsersPermission() {
     try {
       return (
@@ -235,7 +229,6 @@ export default class Group extends Component {
     }
 
   }
-
   async renderUsers() {
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_users_in_group', {
       method: 'POST',
@@ -249,7 +242,6 @@ export default class Group extends Component {
     const users = await data.json()
     this.setState({ users: [...users] })
   }
-
   handleNameChange = (e) => {
     this.setState({ name: e.target.value })
   }
@@ -259,7 +251,6 @@ export default class Group extends Component {
   handleMessageChange = (e) => {
     this.setState({ currentMessage: e.target.value })
   }
-
   savePermissions = async () => {
     this.state.users.forEach(async user => {
       //If user is selected. This, will add them
@@ -302,7 +293,6 @@ export default class Group extends Component {
       }
     });
   }
-
   //TODO: Ensure at least 1 channel remains at all times.
   deleteChannel = async () => {
     await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
@@ -321,7 +311,6 @@ export default class Group extends Component {
     this.setState({ settingsShow: false, deleteChannelShow: false });
     this.getChannels();
   }
-
   leaveGroup = async () => {
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
@@ -347,7 +336,6 @@ export default class Group extends Component {
     window.location.reload();
     // FIXME: Removing the admin means no admins are in this group now. fix permissions
   }
-
   alert() {
     return (
       <Alert variant={this.state.success ? 'success' : 'danger'} onClose={() => this.setState({ showAlert: false })} dismissible>
@@ -444,9 +432,8 @@ export default class Group extends Component {
           </Modal.Footer>
         </Modal>
 
-
-        {/* // using className "navbar" completely destroys all the CSS so navigation must be used instead.*/}
         <Row>
+          {/*// TODO: Fix this so the navigation area is a fixed size. */}
           <Col sm={3} className="navigation">
             <h1>{this.props.groupName}<Button onClick={() => { this.setState({ inviteShow: true }) }} variant="info" >Invite +</Button></h1>
 
@@ -459,20 +446,24 @@ export default class Group extends Component {
 
 
 
-          <Col md='auto' sm>
-            <h1>Messages:</h1>
-            <div>{this.renderItems()}</div>
-
-            <Form>
-              <Form.Group controlId="formMessage">
-                <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-              </Form.Group>
-              <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
+          <Col>
+            <div className="messages">{this.renderItems()}</div>
+            <div className="messageBox">
+              <Form>
+                <Form.Row>
+                  <Col>
+                  <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                  </Col>
+                  <Col md="auto">
+                  <Button varient="primary" onClick={this.sendMessage}>Send Message</Button>
+                  </Col>
+                </Form.Row>
+                
             </Form>
-          </Col>
-        </Row>
-        <Row>
+            </div>
 
+            
+          </Col>
         </Row>
 
 

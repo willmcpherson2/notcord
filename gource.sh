@@ -9,4 +9,5 @@ gource.txt \
 --key \
 --logo ./app/src/notcordsmall.png \
 --title "NotCord App Development" \
---user-image-dir avatars/
+--user-image-dir avatars/ \
+--bloom-intensity 0.35

@@ -22,7 +22,7 @@ export default class App extends Component {
       method: 'POST',
       credentials: 'include'
     })
-    const username = data.json()
+    const username = await data.json()
       if(username !== "NotLoggedIn"){
         this.setState({userLoggedIn: true})
       } else {

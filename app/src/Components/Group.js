@@ -1,5 +1,5 @@
-import { React, Component } from 'react';
-import { Button, Form, Row, Col, Modal, Alert } from 'react-bootstrap';
+import { React, Component, useEffect, useRef } from 'react';
+import { Button, Form, Col, Modal, Alert } from 'react-bootstrap';
 import { GearIcon } from '@primer/octicons-react';
 import '../App.css'
 
@@ -57,11 +57,13 @@ export default class Group extends Component {
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
   componentDidMount() {
     this.getChannels();
-    this.constantRender()
+    this.constantRender();
+    this.scrollToBottom();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
   componentDidUpdate(prevProps) {
+    this.scrollToBottom();
     //Checks the groupName current to the previous one last update, if they are not the same, then get the new channels for this new group.
     if (this.props.groupName !== prevProps.groupName) {
       //Fetches the channels and assigns them to the 'channels' array state.
@@ -90,6 +92,13 @@ export default class Group extends Component {
         )
       })
     )
+  }
+
+  scrollToBottom() {
+    const scrollHeight = this.messageList.scrollHeight;
+    const height = this.messageList.clientHeight;
+    const maxScrollTop = scrollHeight - height;
+    this.messageList.scrollTop = maxScrollTop > 0 ? maxScrollTop : 0;
   }
 
   async renderMessages(channel) {
@@ -135,7 +144,7 @@ export default class Group extends Component {
       this.renderItems();
     }, 5000);
   }
-  componentWillUnmount(){
+  componentWillUnmount() {
     clearInterval(reRender);
   }
   createChannel = async () => {
@@ -193,6 +202,7 @@ export default class Group extends Component {
     }
   }
   sendMessage = async (e) => {
+    e.preventDefault();
     await fetch(process.env.REACT_APP_API_URL + '/send_message', {
       method: 'POST',
       headers: {
@@ -393,7 +403,7 @@ export default class Group extends Component {
             <Modal.Title>Invite People</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
             <Form>
               <Form.Group>
@@ -432,39 +442,31 @@ export default class Group extends Component {
           </Modal.Footer>
         </Modal>
 
-        <Row>
-          {/*// TODO: Fix this so the navigation area is a fixed size. */}
-          <Col sm={3} className="navigation">
-            <h1>{this.props.groupName}<Button onClick={() => { this.setState({ inviteShow: true }) }} variant="info" >Invite +</Button></h1>
+        <div className="navigation">
+          <h1>{this.props.groupName}<Button onClick={() => { this.setState({ inviteShow: true }) }} variant="info" >Invite +</Button></h1>
+          {this.renderChannels()}
+          <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
+          <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
+        </div>
 
-            {this.renderChannels()}
-            <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
-            <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
-          </Col>
-
-
-
-
-
-          <Col>
-            <div className="messages">{this.renderItems()}</div>
-            <div className="messageBox">
-              <Form>
-                <Form.Row>
-                  <Col>
+        <div className="messageArea">
+          <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
+          <div className="messageBox">
+            <Form onSubmit={this.sendMessage}>
+              <Form.Row>
+                <Col>
                   <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-                  </Col>
-                  <Col md="auto">
-                  <Button varient="primary" onClick={this.sendMessage}>Send Message</Button>
-                  </Col>
-                </Form.Row>
-                
-            </Form>
-            </div>
+                </Col>
+                <Col md="auto">
+                  <Button varient="primary" type="submit">Send Message</Button>
+                </Col>
+              </Form.Row>
 
-            
-          </Col>
-        </Row>
+            </Form>
+          </div>
+
+
+        </div>
 
 
       </div>

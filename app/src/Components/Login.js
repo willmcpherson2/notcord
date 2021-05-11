@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Form, Row, Col} from 'react-bootstrap';
+import { Button, Container, Form, Row, Alert} from 'react-bootstrap';
 import Logo from '../notcord.png';
 import '../App.css'
 export default class Login extends Component {
@@ -9,17 +9,15 @@ export default class Login extends Component {
       username: '',
       password: '',
       shouldShowButton: true,
-      test: true
+      success: true,
+      alertMessage: '',
+      showAlert: false
     }
   }
 
-  handleSubmit = (e) => {
-    const { username, password } = this.state;
-    this.setState({shouldShowButton: false}, () => {
-      console.log("Showing Button: " + this.state.shouldShowButton);
-
-      // FEATURE: Allow users to login and signup using their email address
-      fetch(process.env.REACT_APP_API_URL + '/login', {
+  handleSubmit = async () => {
+    this.setState({shouldShowButton: false});
+    const data = await fetch(process.env.REACT_APP_API_URL + '/login', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -27,40 +25,41 @@ export default class Login extends Component {
         },
         credentials: 'include',
         body: JSON.stringify({
-          username: username,
-          password: password
+          username: this.state.username,
+          password: this.state.password
         })
-      }).then(res =>
-          res.json()
-      ).then(res => {
-        // FEATURE: create bootstrap alert for errors / success
-        // TODO: setup a delay for the success message loading wheel
-        if (res === "Ok") {
-          console.log(res)
-          this.props.loggedIn(true)
-          this.props.setView("dashboard")
-        } else {
-          console.log(res)
-        }
       })
-
-    })
+      const login = await data.json();
+      
+      if (login === "Ok") {
+        console.log(login)
+        this.props.loggedIn(true)
+        this.props.setView("dashboard")
+      } else {
+        console.log(login)
+        this.setState({
+          alertMessage: "Username or Password is Incorrect",
+          showAlert: true,
+          success: false,
+          shouldShowButton: true
+        })
+      }
   }
-
 
   handleUserChange = (e) => {
     this.setState({ username: e.target.value })
   }
-
   handlePassChange = (e) => {
     this.setState({ password: e.target.value })
   }
 
-  register = () => {
-    this.props.setView("signup")
+  alert() {
+    return (
+      <Alert variant={this.state.success ? 'success' : 'danger'} onClose={() => this.setState({ showAlert: false })} dismissible>
+        {this.state.alertMessage}
+      </Alert>
+    );
   }
-
-
 
   render() {
     return (
@@ -71,23 +70,20 @@ export default class Login extends Component {
         <Row className="justify-content-md-center">
           <h2>NotCord Login</h2>
         </Row>
+        <Row className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</Row>
         <Row className="justify-content-md-center">
-          <Form.Text className="text-muted">Don't have an account? <button onClick={this.register}>Register Here</button></Form.Text><br></br>
+          <Form.Text className="text-muted">Don't have an account? <button onClick={() => this.props.setView("signup")}>Register Here</button></Form.Text><br></br>
         </Row>
         <Row className="justify-content-md-center">
-          <Form >
+          <Form id="notcordLogin">
             <Form.Group controlId="formUsername">
               <Form.Control type="text" placeholder="Username" value={this.state.username} onChange={this.handleUserChange}></Form.Control>
             </Form.Group>
             <Form.Group controlId="formPassword">
               <Form.Control type="password" placeholder="Password" value={this.state.password} onChange={this.handlePassChange}></Form.Control>
             </Form.Group>
-            <Col className="offset-3">
-            <Button varient="primary" onClick={this.handleSubmit} className={ this.state.shouldShowButton ? '' : 'noDisplay' }>Login</Button>
-            <div className={ this.state.shouldShowButton ? 'noDisplay' : 'loader'}></div>
-           
-            </Col>
-            
+            <Button varient="primary" onClick={this.handleSubmit} className={ this.state.shouldShowButton ? 'button' : 'noDisplay' }>Login</Button>
+            <div className={ this.state.shouldShowButton ? 'noDisplay' : 'rainbow-marker-loader'}></div>
           </Form>
         </Row>
         <Row>

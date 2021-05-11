@@ -1,7 +1,8 @@
 import { Component } from 'react';
-import { Button, Container, Row, OverlayTrigger, Tooltip, Modal, Form } from 'react-bootstrap';
+import { Button, Container, Row, OverlayTrigger, Tooltip, Modal, Form, Alert } from 'react-bootstrap';
 import '../App.css'
 import Logo from '../notcord.png'
+import { GearIcon, PlusIcon, SignOutIcon } from '@primer/octicons-react'
 
 export default class Sidebar extends Component {
   constructor(props) {
@@ -9,21 +10,23 @@ export default class Sidebar extends Component {
     this.state = {
       groups: [],
       show: false,
-      name: ''
+      name: '',
+      alertMessage: '',
+      showAlert: false
     }
   }
 
+  async getGroups() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_groups_for_user', { method: 'POST', credentials: 'include' })
+    const groups = await data.json();
+    this.setState({ groups: [...groups] })
+  }
+
   componentDidMount() {
-    fetch(process.env.REACT_APP_API_URL + '/get_groups_for_user', { method: 'POST', credentials: 'include' })
-      .then(res => res.json())
-      .then(res => {
-        console.log(res)
-        this.setState({ groups: [...res] })
-      });
+    this.getGroups()
   }
 
   renderGroups() {
-
     return (
       this.state.groups.map((val, key) => {
         let letter = val.charAt(0);
@@ -32,92 +35,90 @@ export default class Sidebar extends Component {
             {val}
           </Tooltip>
         );
+        const colours = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+        let randomColour = colours[key % 6];
         return (
           <Row key={key}>
             <OverlayTrigger
               placement="right"
-              delay={{ show: 400, hide: 0 }}
+              delay={{ show: 10, hide: 0 }}
               overlay={renderTooltip}
             >
-              <Button className="groupButton" variant="info" onClick={() => { this.handleSubmit(val) }}>{letter}</Button>
+              <button className={`groupButton ${randomColour}`} onClick={() => {
+                this.props.group(val)
+                this.props.setView("group")
+              }}>{letter}</button>
             </OverlayTrigger>
-
           </Row>
         )
       })
     )
   }
 
-  handleSubmit = (e) => {
-    this.props.group(e)
-    this.props.setView("group")
+
+  createGroup = async () => {
+    const { name } = this.state;
+    const data = await fetch(process.env.REACT_APP_API_URL + '/add_group', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(name)
+    })
+    const newGroup = await data.json();
+    if (newGroup === "Ok") {
+      this.setState({ show: false });
+      this.props.group(name)
+      this.props.setView("group")
+    } else {
+      console.log(newGroup)
+      this.setState({ 
+        alertMessage: "Group Already Exists",
+        showAlert: true
+       });
+    }
+    
+    this.getGroups();
   }
 
-  dashboard = () => {
-    this.props.setView("dashboard");
+
+  logout = async () => {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/logout', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    })
+    const logout = await data.json();
+    logout ? window.location.reload(true) : console.log(logout)
   }
-  settings = () => {
-    this.props.setView("settings");
-  }
+
 
   handleNameChange = (e) => {
     this.setState({ name: e.target.value })
   }
 
-  createGroup = () => {
-    const { name} = this.state;
-
-      //This will create the group when the backend is set up to do so
-      fetch(process.env.REACT_APP_API_URL + '/add_group', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(name)
-      }).then(res =>          
-          res.json()
-      ).then(res => {
-        console.log(res)
-        // FEATURE: create bootstrap alert for these
-        if (res === "Ok") {
-          this.props.setView("dashboard")
-        } else if (res === "GroupAlreadyExists") {      
-          console.log("GROUP ALREADY EXISTS")
-        } else {
-          console.log(res)
-        }
-      })
-      this.setState({show: false}, () => {
-        fetch(process.env.REACT_APP_API_URL + '/get_groups_for_user', { method: 'POST', credentials: 'include' })
-      .then(res => res.json())
-      .then(res => {
-        console.log(res)
-        this.setState({ groups: [...res] })
-        this.renderGroups();
-      });})
-      
+  alert() {
+    return (
+      <Alert variant='danger' onClose={() => this.setState({ showAlert: false })} dismissible>
+        {this.state.alertMessage}
+      </Alert>
+    );
   }
 
   render() {
     return (
       <Container fluid className="sidebar">
-        <img src={Logo} alt="Notcord Logo" className="image" onClick={this.dashboard}></img>
-        <hr className="hozLine" />
-
-        {/** // TODO: Fix the design of these 
-         * 
-        */}
-        {this.renderGroups()}
-        <br /> <br />
-        <Button onClick={() => { this.setState({ show: true }) }} variant="light">New</Button>
         <Modal show={this.state.show} onHide={() => { this.setState({ show: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Create New Group</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             <Form>
               <Form.Group>
                 <Form.Label>Group Name</Form.Label>
@@ -125,10 +126,16 @@ export default class Sidebar extends Component {
               </Form.Group>
               <Button onClick={this.createGroup}>Create Group</Button>
             </Form>
-
           </Modal.Body>
         </Modal>
-        <Button onClick={this.settings}>Set</Button>
+        <img src={Logo} alt="Notcord Logo" className="image" onClick={() => this.props.setView("dashboard")}></img>
+        <hr className="hozLine" />
+        {this.renderGroups()}
+        <Row>
+          <button className="groupButton Settings" onClick={() => { this.setState({ show: true }) }}><PlusIcon size={24} /></button>
+          <button className="groupButton Settings" onClick={() => this.props.setView("settings")}><GearIcon size={24} /></button>
+          <button className="groupButton Settings bottom" onClick={this.logout}><SignOutIcon size={24} /></button>
+        </Row>
       </Container>
     );
   }

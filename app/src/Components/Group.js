@@ -62,8 +62,7 @@ export default class Group extends Component {
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
-  componentDidUpdate(prevProps) {
-    this.scrollToBottom();
+  componentDidUpdate(prevProps, prevState) {
     //Checks the groupName current to the previous one last update, if they are not the same, then get the new channels for this new group.
     if (this.props.groupName !== prevProps.groupName) {
       //Fetches the channels and assigns them to the 'channels' array state.
@@ -71,6 +70,9 @@ export default class Group extends Component {
       if (this.state.currentChannel !== null) {
         this.renderMessages(this.state.currentChannel);
       }
+    }
+    if (this.state.messages.length !== prevState.messages.length) {
+      this.scrollToBottom();
     }
   }
 

@@ -1,7 +1,9 @@
-import { React, Component, useEffect } from 'react';
-import { Button, Form, Row, Col, Modal } from 'react-bootstrap';
+import { React, Component } from 'react';
+import { Button, Form, Row, Col, Modal, Alert } from 'react-bootstrap';
 import { GearIcon } from '@primer/octicons-react';
 import '../App.css'
+
+let reRender = null;
 export default class Group extends Component {
   constructor(props) {
     super(props);
@@ -19,7 +21,9 @@ export default class Group extends Component {
       users: [],
       leaveGroupShow: false,
       deleteChannelShow: false,
-      time: Date.now()
+      showAlert: false,
+      alertMessage: '',
+      success: false
     }
   }
 
@@ -62,7 +66,6 @@ export default class Group extends Component {
     if (this.props.groupName !== prevProps.groupName) {
       //Fetches the channels and assigns them to the 'channels' array state.
       this.getChannels();
-
       if (this.state.currentChannel !== null) {
         this.renderMessages(this.state.currentChannel);
       }
@@ -128,12 +131,15 @@ export default class Group extends Component {
 
   //This rerenders the chat box so messages are displayed. It's quite nice.
   constantRender() {
-    setInterval(() => {
+    reRender = setInterval(() => {
       this.renderMessages(this.state.currentChannel)
       this.renderItems();
     }, 5000);
   }
 
+  componentWillUnmount(){
+    clearInterval(reRender);
+  }
 
   createChannel = async () => {
     const { name } = this.state;
@@ -156,7 +162,6 @@ export default class Group extends Component {
       this.getChannels();
       this.setState({ channelShow: false })
     } else {
-      // FEATURE: create bootstrap alert for this
       console.log(channel)
     }
 
@@ -177,12 +182,18 @@ export default class Group extends Component {
       })
     })
     const invites = await data.json()
-    //TODO: Convert all of these in the program with "switch" statements for all the errors as directed in the API Documentation
     if (invites === "Ok") {
-      console.log("USER " + this.state.invite + " INVITED")
-      // FEATURE: create bootstrap alert for this
+      this.setState({
+        alertMessage: "User " + this.state.invite + " Successfully Invited",
+        showAlert: true,
+        success: true,
+      })
     } else {
-      console.log(invites)
+      this.setState({
+        alertMessage: invites,
+        showAlert: true,
+        success: false,
+      })
     }
   }
 
@@ -311,7 +322,6 @@ export default class Group extends Component {
     this.getChannels();
   }
 
-  //TODO: Add a confirmation for leaving
   leaveGroup = async () => {
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
@@ -335,8 +345,15 @@ export default class Group extends Component {
       })
     })
     window.location.reload();
-    // TODO: Refresh groups after user leaves
     // FIXME: Removing the admin means no admins are in this group now. fix permissions
+  }
+
+  alert() {
+    return (
+      <Alert variant={this.state.success ? 'success' : 'danger'} onClose={() => this.setState({ showAlert: false })} dismissible>
+        {this.state.alertMessage}
+      </Alert>
+    );
   }
 
 
@@ -383,11 +400,12 @@ export default class Group extends Component {
 
 
         {/**Invite people to group */}
-        <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false }) }}>
+        <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Invite People</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
             <Form>
               <Form.Group>
@@ -444,9 +462,10 @@ export default class Group extends Component {
           <Col md='auto' sm>
             <h1>Messages:</h1>
             <div>{this.renderItems()}</div>
+
             <Form>
               <Form.Group controlId="formMessage">
-                <Form.Control type="text" autocomplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
               </Form.Group>
               <Col className="justify-content-md-center"><Button varient="primary" onClick={this.sendMessage}>Send Message</Button></Col>
             </Form>

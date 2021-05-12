@@ -1,4 +1,5 @@
 use crate::response::*;
+use crate::state::State;
 use rocket::http::Cookies;
 use rocket_contrib::databases::rusqlite;
 use std::path::Path;
@@ -142,38 +143,47 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
     .to_cors()
     .unwrap();
 
-    rocket.attach(Database::fairing()).attach(cors).mount(
-        "/",
-        routes![
-            index,
-            files,
-            signup,
-            login,
-            logout,
-            get_username,
-            set_avatar,
-            get_avatar,
-            add_group,
-            invite_user_to_group,
-            get_invites,
-            accept_invite,
-            remove_user_from_group,
-            get_users_in_group,
-            add_channel_to_group,
-            remove_channel_from_group,
-            add_user_to_channel,
-            remove_user_from_channel,
-            get_groups_for_user,
-            get_channels_in_group,
-            get_users_in_channel,
-            send_message,
-            get_messages,
-            add_friend_request,
-            process_friend_request,
-            delete_friendship,
-            get_friends_for_user,
-        ],
-    )
+    rocket
+        .attach(Database::fairing())
+        .attach(cors)
+        .mount(
+            "/",
+            routes![
+                index,
+                files,
+                signup,
+                login,
+                logout,
+                get_username,
+                set_avatar,
+                get_avatar,
+                add_group,
+                invite_user_to_group,
+                get_invites,
+                accept_invite,
+                remove_user_from_group,
+                get_users_in_group,
+                add_channel_to_group,
+                remove_channel_from_group,
+                add_user_to_channel,
+                remove_user_from_channel,
+                get_groups_for_user,
+                get_channels_in_group,
+                get_users_in_channel,
+                send_message,
+                get_messages,
+                add_friend_request,
+                process_friend_request,
+                delete_friendship,
+                get_friends_for_user,
+                join_voice,
+                get_peers,
+                signal,
+                get_signals,
+                leave_voice,
+            ],
+        )
+        .manage(State::new())
 }
 
 pub fn get_logged_in_user_id(cookies: &mut Cookies) -> Result<i64, Err> {

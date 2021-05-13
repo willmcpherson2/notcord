@@ -6,6 +6,8 @@ import '../App.css'
 
 let reRender = null;
 let peerUpdate = null;
+let currentUser = null;
+let isAdmin = false;
 export default class Group extends Component {
   constructor(props) {
     super(props);
@@ -33,6 +35,37 @@ export default class Group extends Component {
     }
   }
 
+  async getUsername() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    })
+    const user = await data.json()
+    console.log(user)
+    return user
+  }
+
+  async isGroupAdmin() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/is_group_admin', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(this.props.groupName)
+    })
+    const user = await data.json()
+    if (user === "Ok") {
+      return true;
+    } else {
+      return false;
+    }
+  }
   async getChannels() {
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', {
       method: 'POST',
@@ -63,10 +96,12 @@ export default class Group extends Component {
   }
 
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
-  componentDidMount() {
+  async componentDidMount() {
     this.getChannels();
     this.constantRender();
     this.scrollToBottom();
+    this.currentUser = await this.getUsername();
+    this.isAdmin = await this.isGroupAdmin();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -230,11 +265,15 @@ export default class Group extends Component {
     this.renderMessages(this.state.currentChannel)
     this.setState({ currentMessage: '' })
   }
-  renderUsersPermission() {
+  renderUsersPermission() { 
     try {
       return (
         this.state.users.map((val, key) => {
-          if (this.state.usersInChannel[key] !== undefined) {
+          if (this.state.usersInChannel[key] === this.currentUser && this.isAdmin) {
+            return (
+              <Form.Check key={key} id={val} type="checkbox" label={val} checked readOnly/>
+            )
+          }else if (this.state.usersInChannel[key] !== undefined) {
             return (
               <Form.Check key={key} id={val} type="checkbox" label={val} defaultChecked />
             )
@@ -603,20 +642,20 @@ export default class Group extends Component {
 
         <div className="navigation">
           <div className="heading">
-          <OverlayTrigger
+            <OverlayTrigger
               placement='bottom'
               delay={{ show: 1000, hide: 0 }}
               overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
-            <h3 className="groupName">{this.props.groupName}</h3>
+              <h3 className="groupName">{this.props.groupName}</h3>
             </OverlayTrigger>
-            
+
             <OverlayTrigger
               placement='right'
               delay={{ show: 500, hide: 0 }}
               overlay={<Tooltip>Invite User to Group</Tooltip>}>
-            <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
+              <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
             </OverlayTrigger>
-            
+
           </div>
 
 

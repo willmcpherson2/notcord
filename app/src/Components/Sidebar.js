@@ -73,10 +73,10 @@ export default class Sidebar extends Component {
       this.setState({ show: false });
     } else {
       console.log(newGroup)
-      this.setState({ 
+      this.setState({
         alertMessage: "Group Already Exists",
         showAlert: true
-       });
+      });
     }
     //This creates the channel
     await fetch(process.env.REACT_APP_API_URL + '/add_channel_to_group', {
@@ -145,9 +145,29 @@ export default class Sidebar extends Component {
         <hr className="hozLine" />
         {this.renderGroups()}
         <Row>
-          <button className="groupButton Settings" onClick={() => { this.setState({ show: true }) }}><PlusIcon size={24} /></button>
-          <button className="groupButton Settings" onClick={() => this.props.setView("settings")}><GearIcon size={24} /></button>
-          <button className="groupButton Settings bottom" onClick={this.logout}><SignOutIcon size={24} /></button>
+          <OverlayTrigger
+            placement="right"
+            delay={{ show: 10, hide: 0 }}
+            overlay={<Tooltip id="button-tooltip">Create New Group</Tooltip>}>
+            <button className="groupButton Settings" onClick={() => { this.setState({ show: true }) }}><PlusIcon size={24} /></button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="right"
+            delay={{ show: 10, hide: 0 }}
+            overlay={<Tooltip id="button-tooltip">Settings</Tooltip>}>
+            <button className="groupButton Settings" onClick={() => this.props.setView("settings")}><GearIcon size={24} /></button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="right"
+            delay={{ show: 10, hide: 0 }}
+            overlay={<Tooltip id="button-tooltip">Logout</Tooltip>}>
+            <button className="groupButton Settings bottom" onClick={this.logout}><SignOutIcon size={24} /></button>
+          </OverlayTrigger>
+
+
+
+          
+          
         </Row>
       </Container>
     );

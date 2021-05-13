@@ -124,15 +124,21 @@ export default class Group extends Component {
     return (
       this.state.channels.map((val, key) => {
         return (
-          <div key={key} className="max">
-            <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
-            <button onClick={() => {
+          <div key={key}>
+            <button
+              className={this.state.currentChannel === val ? 'channelBar selected' : 'channelBar'}
+              onClick={() => {
+                this.setState({ currentChannel: val },
+                  () => this.renderMessages(val))
+              }}># {val}</button>
+
+            <button className="channelOverlay" onClick={() => {
               this.setState({ settingsShow: true, currentChannel: val }, () => {
                 this.getUsersInChannel()
                 this.renderUsers();
               })
 
-            }}><GearIcon size={16} /></button>
+            }}><GearIcon size={24} /></button>
           </div>
         )
       })
@@ -171,10 +177,20 @@ export default class Group extends Component {
             "July", "August", "September", "October", "November", "December"
           ];
           let time = new Date(val.time + " UTC");
-          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          let date = time.getDate() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          let currentDate = new Date();
+          if (currentDate.getDate() === time.getDate()) {
+            date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          } else if (currentDate.getDate() === time.getDate()+1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
+            date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          }
           return (
             // TODO: Fix this to make it look good lol
-            <p key={key}><span>({date})</span><strong>{val.username}</strong>: {val.message}</p>
+            <div key={key}>
+              <p className="messageTitle">{val.username}<span>{date}</span></p>
+              <p className="messageContent">{val.message}</p>
+            </div>
+            
           )
         })
       )
@@ -265,15 +281,15 @@ export default class Group extends Component {
     this.renderMessages(this.state.currentChannel)
     this.setState({ currentMessage: '' })
   }
-  renderUsersPermission() { 
+  renderUsersPermission() {
     try {
       return (
         this.state.users.map((val, key) => {
           if (this.state.usersInChannel[key] === this.currentUser && this.isAdmin) {
             return (
-              <Form.Check key={key} id={val} type="checkbox" label={val} checked readOnly/>
+              <Form.Check key={key} id={val} type="checkbox" label={val} checked readOnly />
             )
-          }else if (this.state.usersInChannel[key] !== undefined) {
+          } else if (this.state.usersInChannel[key] !== undefined) {
             return (
               <Form.Check key={key} id={val} type="checkbox" label={val} defaultChecked />
             )
@@ -661,24 +677,23 @@ export default class Group extends Component {
 
 
           {this.renderChannels()}
-          <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
-          <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
-          <div className="voiceChat">
-            <h3>Voice Chat</h3>
-            <Form>
-              <Form.Row>
-                <Col md="auto">
-                  <Button varient="primary" disabled={this.state.inVoiceChat} onClick={this.joinVoice}>Join</Button>
-                </Col>
-                <Col md="auto">
-                  <Button varient="primary" disabled={!this.state.inVoiceChat} onClick={this.leaveVoice}>Leave</Button>
-                </Col>
-              </Form.Row>
-            </Form>
+          <div className="extras">
+            <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
+            <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
           </div>
+
         </div>
 
         <div className="messageArea">
+          <div className="infoBox">
+            <div className="info"><p>{this.state.currentChannel}</p></div>
+            <div className="callButton">
+              <Button variant="success" className={this.state.inVoiceChat ? "noDisplay" : ""} onClick={this.joinVoice}>Join Voice Call</Button>
+              <Button variant="danger" className={this.state.inVoiceChat ? "" : "noDisplay"} onClick={this.leaveVoice}>Leave Call</Button>
+            </div>
+
+
+          </div>
           <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
           <div className="messageBox">
             <Form onSubmit={this.sendMessage}>

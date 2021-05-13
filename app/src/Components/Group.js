@@ -40,7 +40,9 @@ export default class Group extends Component {
       body: JSON.stringify(this.props.groupName)
     })
     const channels = await data.json();
-    this.setState({ channels: [...channels] })
+    await this.setState({ channels: [...channels] })
+    await this.setState({ currentChannel: this.state.channels[0]})
+    this.renderMessages(this.state.currentChannel)
   }
 
   async getUsersInChannel() {
@@ -594,7 +596,7 @@ export default class Group extends Component {
           {this.renderChannels()}
           <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
           <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
-          <div classname="voiceChat">
+          <div className="voiceChat">
           <h3>Voice Chat</h3>
           <Form>
             <Form.Row>

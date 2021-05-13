@@ -41,7 +41,7 @@ export default class Group extends Component {
     })
     const channels = await data.json();
     await this.setState({ channels: [...channels] })
-    await this.setState({ currentChannel: this.state.channels[0]})
+    await this.setState({ currentChannel: this.state.channels[0] })
     this.renderMessages(this.state.currentChannel)
   }
 
@@ -293,7 +293,7 @@ export default class Group extends Component {
         console.log(user + " " + users)
         this.setState({ settingsShow: false })
         //And this will remove them. 
-        // BUG: This removes admins included, and can remove the person who made it, this should be validated at a later stage
+        // TODO: Backend should have a route that is 'isAdmin'
       } else if (!document.getElementById(user).checked) {
         const data = await fetch(process.env.REACT_APP_API_URL + '/remove_user_from_channel', {
           method: 'POST',
@@ -314,25 +314,36 @@ export default class Group extends Component {
       }
     });
   }
-  //TODO: Ensure at least 1 channel remains at all times.
   deleteChannel = async () => {
-    await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        channel_name: this.state.currentChannel,
-        group_name: this.props.groupName
+    if (this.state.channels.length > 1) {
+      console.log(this.state.channels.length)
+      await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName
+        })
       })
-    })
-    console.log(this.state.currentChannel + " Deleted")
-    this.setState({ settingsShow: false, deleteChannelShow: false });
-    this.getChannels();
+      console.log(this.state.currentChannel + " Deleted")
+      this.setState({ settingsShow: false, deleteChannelShow: false });
+      this.getChannels();
+    } else {
+      this.setState({
+        alertMessage: "Cannot delete last channel. At least 1 channel must remain at all times.",
+        showAlert: true,
+        success: false,
+      })
+      console.log(this.state.channels.length)
+    }
   }
   leaveGroup = async () => {
+    // TODO: Either make another user admin, or if the admin leaves, the group is deleted.
+    // TODO: Also add a delete group route into the backend
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
       headers: {
@@ -355,7 +366,6 @@ export default class Group extends Component {
       })
     })
     window.location.reload();
-    // FIXME: Removing the admin means no admins are in this group now. fix permissions
   }
   alert() {
     return (
@@ -388,12 +398,12 @@ export default class Group extends Component {
     try {
       await this.getPeers(true);
 
-    peerUpdate = setInterval(async () => {
-      await this.getPeers(false);
-      await this.getSignals();
-    }, 1000);
-    } catch (e) {console.log(e)}
-    
+      peerUpdate = setInterval(async () => {
+        await this.getPeers(false);
+        await this.getSignals();
+      }, 1000);
+    } catch (e) { console.log(e) }
+
   }
 
   async getPeers(isInitiator) {
@@ -409,13 +419,13 @@ export default class Group extends Component {
           group_name: this.props.groupName,
         }),
       });
-  
+
       const peerIds = await response.json();
-  
+
       this.setState({
         voicePeers: Object.fromEntries(Object.entries(this.state.voicePeers).filter(([key, _]) => peerIds.includes(parseInt(key)))),
       });
-  
+
       peerIds.forEach(peerId => {
         if (this.state.voicePeers[peerId] === undefined) {
           const peer = new Peer({ initiator: isInitiator, stream: this.state.voiceStream });
@@ -424,8 +434,8 @@ export default class Group extends Component {
           this.state.voicePeers[peerId] = peer;
         }
       });
-    } catch(e) {console.log(e)}
-    
+    } catch (e) { console.log(e) }
+
   }
 
   async getSignals() {
@@ -441,13 +451,13 @@ export default class Group extends Component {
           group_name: this.props.groupName,
         }),
       });
-  
+
       const peerSignals = await response.json();
       peerSignals.forEach(signal => {
         this.state.voicePeers[signal.peer].signal(signal.signal);
       });
-    } catch(e) {console.log(e)}
-    
+    } catch (e) { console.log(e) }
+
   }
 
   async sendSignal(signal, peerId) {
@@ -510,7 +520,7 @@ export default class Group extends Component {
         {/**NAVIGATION BAR */}
 
         {/**Change Channel Settings */}
-        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false }) }}>
+        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Channel Settings</Modal.Title>
           </Modal.Header>
@@ -528,7 +538,7 @@ export default class Group extends Component {
         </Modal>
 
         {/**Create New Channel */}
-        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false }) }}>
+        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Create New Channel</Modal.Title>
           </Modal.Header>
@@ -552,7 +562,7 @@ export default class Group extends Component {
             <Modal.Title>Invite People</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
             <Form>
               <Form.Group>
@@ -566,11 +576,12 @@ export default class Group extends Component {
         </Modal>
 
         {/**Delete Channel Confirm */}
-        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false }) }}>
+        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Delete Channel</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             Are you sure you want to delete this channel? This action is unreversable.
           </Modal.Body>
           <Modal.Footer>
@@ -579,7 +590,7 @@ export default class Group extends Component {
         </Modal>
 
         {/**Leave Group Confirm */}
-        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false }) }}>
+        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Leave Group</Modal.Title>
           </Modal.Header>
@@ -597,18 +608,18 @@ export default class Group extends Component {
           <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
           <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
           <div className="voiceChat">
-          <h3>Voice Chat</h3>
-          <Form>
-            <Form.Row>
-              <Col md="auto">
-                <Button varient="primary" disabled={this.state.inVoiceChat} onClick={this.joinVoice}>Join</Button>
-              </Col>
-              <Col md="auto">
-                <Button varient="primary" disabled={!this.state.inVoiceChat} onClick={this.leaveVoice}>Leave</Button>
-              </Col>
-            </Form.Row>
-          </Form>
-        </div>
+            <h3>Voice Chat</h3>
+            <Form>
+              <Form.Row>
+                <Col md="auto">
+                  <Button varient="primary" disabled={this.state.inVoiceChat} onClick={this.joinVoice}>Join</Button>
+                </Col>
+                <Col md="auto">
+                  <Button varient="primary" disabled={!this.state.inVoiceChat} onClick={this.leaveVoice}>Leave</Button>
+                </Col>
+              </Form.Row>
+            </Form>
+          </div>
         </div>
 
         <div className="messageArea">
@@ -629,7 +640,7 @@ export default class Group extends Component {
 
 
         </div>
-        
+
       </div>
     );
   }

@@ -153,6 +153,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             get_username,
             set_avatar,
             get_avatar,
+            is_group_admin,
             add_group,
             invite_user_to_group,
             get_invites,

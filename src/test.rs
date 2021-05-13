@@ -724,7 +724,7 @@ fn get_invites_not_logged_in() {
 }
 
 #[test]
-fn accept_invite_success() {
+fn process_group_invite_success() {
     let (client, _) = setup!();
 
     client
@@ -784,9 +784,12 @@ fn accept_invite_success() {
         .dispatch();
 
     let message = client
-        .post("/accept_invite")
+        .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("\"test_group01\"");
+        .body("{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+            }");
 
     let mut response = message.dispatch();
 
@@ -797,13 +800,16 @@ fn accept_invite_success() {
 }
 
 #[test]
-fn accept_invite_not_logged_in() {
+fn process_group_invite_not_logged_in() {
     let (client, _) = setup!();
 
     let message = client
-        .post("/accept_invite")
+        .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("\"test_group01\"");
+        .body("{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+            }");
 
     let mut response = message.dispatch();
 
@@ -814,7 +820,7 @@ fn accept_invite_not_logged_in() {
 }
 
 #[test]
-fn accept_invite_group_doesnt_exist() {
+fn process_group_invite_group_doesnt_exist() {
     let (client, _) = setup!();
 
     client
@@ -839,9 +845,12 @@ fn accept_invite_group_doesnt_exist() {
         .dispatch();
 
     let message = client
-        .post("/accept_invite")
+        .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("\"test_group01\"");
+        .body("{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+            }");
 
     let mut response = message.dispatch();
 
@@ -852,7 +861,7 @@ fn accept_invite_group_doesnt_exist() {
 }
 
 #[test]
-fn accept_invite_invite_doesnt_exist() {
+fn process_group_invite_invite_doesnt_exist() {
     let (client, _) = setup!();
 
     client
@@ -902,9 +911,12 @@ fn accept_invite_invite_doesnt_exist() {
         .dispatch();
 
     let message = client
-        .post("/accept_invite")
+        .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("\"test_group01\"");
+        .body("{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+            }");
 
     let mut response = message.dispatch();
 

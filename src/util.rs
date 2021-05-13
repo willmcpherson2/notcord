@@ -156,7 +156,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             add_group,
             invite_user_to_group,
             get_invites,
-            accept_invite,
+            process_group_invite,
             remove_user_from_group,
             get_users_in_group,
             add_channel_to_group,

@@ -1,4 +1,4 @@
-import { React, Component, useEffect, useRef } from 'react';
+import { React, Component } from 'react';
 import { Button, Form, Col, Modal, Alert } from 'react-bootstrap';
 import { GearIcon } from '@primer/octicons-react';
 import Peer from 'simple-peer';
@@ -383,61 +383,69 @@ export default class Group extends Component {
         group_name: this.props.groupName,
       }),
     });
-
-    await this.getPeers(true);
+    try {
+      await this.getPeers(true);
 
     peerUpdate = setInterval(async () => {
       await this.getPeers(false);
       await this.getSignals();
     }, 1000);
+    } catch (e) {console.log(e)}
+    
   }
 
   async getPeers(isInitiator) {
-    const response = await fetch(process.env.REACT_APP_API_URL + '/get_peers', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        channel_name: this.state.currentChannel,
-        group_name: this.props.groupName,
-      }),
-    });
-
-    const peerIds = await response.json();
-
-    this.setState({
-      voicePeers: Object.fromEntries(Object.entries(this.state.voicePeers).filter(([key, _]) => peerIds.includes(parseInt(key)))),
-    });
-
-    peerIds.forEach(peerId => {
-      if (this.state.voicePeers[peerId] === undefined) {
-        const peer = new Peer({ initiator: isInitiator, stream: this.state.voiceStream });
-        peer.on('signal', signal => this.sendSignal(signal, peerId));
-        peer.on('track', (_, peerStream) => this.addAudioPlayer(peerStream));
-        this.state.voicePeers[peerId] = peer;
-      }
-    });
+    try {
+      const response = await fetch(process.env.REACT_APP_API_URL + '/get_peers', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName,
+        }),
+      });
+  
+      const peerIds = await response.json();
+  
+      this.setState({
+        voicePeers: Object.fromEntries(Object.entries(this.state.voicePeers).filter(([key, _]) => peerIds.includes(parseInt(key)))),
+      });
+  
+      peerIds.forEach(peerId => {
+        if (this.state.voicePeers[peerId] === undefined) {
+          const peer = new Peer({ initiator: isInitiator, stream: this.state.voiceStream });
+          peer.on('signal', signal => this.sendSignal(signal, peerId));
+          peer.on('track', (_, peerStream) => this.addAudioPlayer(peerStream));
+          this.state.voicePeers[peerId] = peer;
+        }
+      });
+    } catch(e) {console.log(e)}
+    
   }
 
   async getSignals() {
-    const response = await fetch(process.env.REACT_APP_API_URL + '/get_signals', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        channel_name: this.state.currentChannel,
-        group_name: this.props.groupName,
-      }),
-    });
-
-    const peerSignals = await response.json();
-    peerSignals.forEach(signal => {
-      this.state.voicePeers[signal.peer].signal(signal.signal);
-    });
+    try {
+      const response = await fetch(process.env.REACT_APP_API_URL + '/get_signals', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName,
+        }),
+      });
+  
+      const peerSignals = await response.json();
+      peerSignals.forEach(signal => {
+        this.state.voicePeers[signal.peer].signal(signal.signal);
+      });
+    } catch(e) {console.log(e)}
+    
   }
 
   async sendSignal(signal, peerId) {
@@ -586,6 +594,19 @@ export default class Group extends Component {
           {this.renderChannels()}
           <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
           <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
+          <div classname="voiceChat">
+          <h3>Voice Chat</h3>
+          <Form>
+            <Form.Row>
+              <Col md="auto">
+                <Button varient="primary" disabled={this.state.inVoiceChat} onClick={this.joinVoice}>Join</Button>
+              </Col>
+              <Col md="auto">
+                <Button varient="primary" disabled={!this.state.inVoiceChat} onClick={this.leaveVoice}>Leave</Button>
+              </Col>
+            </Form.Row>
+          </Form>
+        </div>
         </div>
 
         <div className="messageArea">
@@ -606,23 +627,7 @@ export default class Group extends Component {
 
 
         </div>
-
-        <Row>
-          <div className="messageBox">
-            <h3>Voice Chat</h3>
-            <Form>
-              <Form.Row>
-                <Col md="auto">
-                  <Button varient="primary" disabled={this.state.inVoiceChat} onClick={this.joinVoice}>Join</Button>
-                </Col>
-                <Col md="auto">
-                  <Button varient="primary" disabled={!this.state.inVoiceChat} onClick={this.leaveVoice}>Leave</Button>
-                </Col>
-              </Form.Row>
-            </Form>
-          </div>
-        </Row>
-
+        
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import { React, Component } from 'react';
-import { Button, Form, Col, Modal, Alert } from 'react-bootstrap';
-import { GearIcon } from '@primer/octicons-react';
+import { Button, Form, Col, Modal, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { GearIcon, PlusIcon } from '@primer/octicons-react';
 import Peer from 'simple-peer';
 import '../App.css'
 
@@ -555,14 +555,13 @@ export default class Group extends Component {
           </Modal.Body>
         </Modal>
 
-
         {/**Invite people to group */}
         <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Invite People</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
             <Form>
               <Form.Group>
@@ -581,7 +580,7 @@ export default class Group extends Component {
             <Modal.Title>Delete Channel</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             Are you sure you want to delete this channel? This action is unreversable.
           </Modal.Body>
           <Modal.Footer>
@@ -603,7 +602,25 @@ export default class Group extends Component {
         </Modal>
 
         <div className="navigation">
-          <h1>{this.props.groupName}<Button onClick={() => { this.setState({ inviteShow: true }) }} variant="info" >Invite +</Button></h1>
+          <div className="heading">
+          <OverlayTrigger
+              placement='bottom'
+              delay={{ show: 1000, hide: 0 }}
+              overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
+            <h3 className="groupName">{this.props.groupName}</h3>
+            </OverlayTrigger>
+            
+            <OverlayTrigger
+              placement='right'
+              delay={{ show: 500, hide: 0 }}
+              overlay={<Tooltip>Invite User to Group</Tooltip>}>
+            <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
+            </OverlayTrigger>
+            
+          </div>
+
+
+
           {this.renderChannels()}
           <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
           <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>

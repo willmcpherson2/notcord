@@ -99,14 +99,14 @@
 1616559707|Josh Thiele|M|/src/main.rs
 1616559751|Josh Thiele|M|/app/src/Components/Login/Login.js
 1616559751|Josh Thiele|M|/app/src/Components/Login/Login.js
-1616735424|Timothy M Stokoe|M|/.gitignore
-1616735424|Timothy M Stokoe|A|/test/intergration_test.rs
-1616735424|Timothy M Stokoe|M|/.gitignore
-1616735424|Timothy M Stokoe|A|/test/intergration_test.rs
-1616737280|Timothy M Stokoe|M|/.gitignore
-1616737280|Timothy M Stokoe|A|/tests/intergration_test.rs
-1616737280|Timothy M Stokoe|M|/.gitignore
-1616737280|Timothy M Stokoe|A|/tests/intergration_test.rs
+1616735424|Timothy Stokoe|M|/.gitignore
+1616735424|Timothy Stokoe|A|/test/intergration_test.rs
+1616735424|Timothy Stokoe|M|/.gitignore
+1616735424|Timothy Stokoe|A|/test/intergration_test.rs
+1616737280|Timothy Stokoe|M|/.gitignore
+1616737280|Timothy Stokoe|A|/tests/intergration_test.rs
+1616737280|Timothy Stokoe|M|/.gitignore
+1616737280|Timothy Stokoe|A|/tests/intergration_test.rs
 1616740536|William McPherson|M|/src/main.rs
 1616740536|William McPherson|M|/src/main.rs
 1616841798|Josh Thiele|M|/app/package.json
@@ -129,12 +129,12 @@
 1616848945|William McPherson|M|/src/main.rs
 1616910158|William McPherson|M|/src/main.rs
 1616910158|William McPherson|M|/src/main.rs
-1616912145|Timothy M Stokoe|M|/src/main.rs
-1616912145|Timothy M Stokoe|A|/src/tests_main.rs
-1616912145|Timothy M Stokoe|M|/src/main.rs
-1616912145|Timothy M Stokoe|A|/src/tests_main.rs
-1616912309|Timothy M Stokoe|M|/src/tests_main.rs
-1616912309|Timothy M Stokoe|M|/src/tests_main.rs
+1616912145|Timothy Stokoe|M|/src/main.rs
+1616912145|Timothy Stokoe|A|/src/tests_main.rs
+1616912145|Timothy Stokoe|M|/src/main.rs
+1616912145|Timothy Stokoe|A|/src/tests_main.rs
+1616912309|Timothy Stokoe|M|/src/tests_main.rs
+1616912309|Timothy Stokoe|M|/src/tests_main.rs
 1616926882|William McPherson|M|/src/main.rs
 1616926882|William McPherson|M|/src/main.rs
 1616932559|William McPherson|M|/.gitignore
@@ -149,40 +149,40 @@
 1616984150|Josh Thiele|A|/app/src/Components/Signup/Signup.js
 1616984150|Josh Thiele|A|/app/src/Components/Login/Login.js
 1616984150|Josh Thiele|A|/app/src/Components/Signup/Signup.js
-1616995841|Timothy M Stokoe|M|/src/main.rs
-1616995841|Timothy M Stokoe|M|/src/tests_main.rs
-1616995841|Timothy M Stokoe|M|/src/main.rs
-1616995841|Timothy M Stokoe|M|/src/tests_main.rs
-1616999826|Timothy M Stokoe|M|/src/tests_main.rs
-1616999826|Timothy M Stokoe|M|/src/tests_main.rs
+1616995841|Timothy Stokoe|M|/src/main.rs
+1616995841|Timothy Stokoe|M|/src/tests_main.rs
+1616995841|Timothy Stokoe|M|/src/main.rs
+1616995841|Timothy Stokoe|M|/src/tests_main.rs
+1616999826|Timothy Stokoe|M|/src/tests_main.rs
+1616999826|Timothy Stokoe|M|/src/tests_main.rs
 1617003442|Josh Thiele|M|/app/src/App.js
 1617003442|Josh Thiele|M|/app/src/Components/Login/Login.js
 1617003442|Josh Thiele|M|/app/src/Components/Signup/Signup.js
 1617003442|Josh Thiele|M|/app/src/App.js
 1617003442|Josh Thiele|M|/app/src/Components/Login/Login.js
 1617003442|Josh Thiele|M|/app/src/Components/Signup/Signup.js
-1617012564|Timothy M Stokoe|M|/src/main.rs
-1617012564|Timothy M Stokoe|M|/src/tests_main.rs
-1617012564|Timothy M Stokoe|M|/src/main.rs
-1617012564|Timothy M Stokoe|M|/src/tests_main.rs
-1617012809|Timothy M Stokoe|M|/src/main.rs
-1617012809|Timothy M Stokoe|M|/src/tests_main.rs
-1617012809|Timothy M Stokoe|M|/src/main.rs
-1617012809|Timothy M Stokoe|M|/src/tests_main.rs
+1617012564|Timothy Stokoe|M|/src/main.rs
+1617012564|Timothy Stokoe|M|/src/tests_main.rs
+1617012564|Timothy Stokoe|M|/src/main.rs
+1617012564|Timothy Stokoe|M|/src/tests_main.rs
+1617012809|Timothy Stokoe|M|/src/main.rs
+1617012809|Timothy Stokoe|M|/src/tests_main.rs
+1617012809|Timothy Stokoe|M|/src/main.rs
+1617012809|Timothy Stokoe|M|/src/tests_main.rs
 1617018798|William McPherson|M|/Cargo.toml
 1617018798|William McPherson|M|/src/main.rs
 1617018798|William McPherson|M|/Cargo.toml
 1617018798|William McPherson|M|/src/main.rs
-1617082970|Timothy M Stokoe|M|/src/main.rs
-1617082970|Timothy M Stokoe|M|/src/tests_main.rs
-1617082970|Timothy M Stokoe|M|/src/main.rs
-1617082970|Timothy M Stokoe|M|/src/tests_main.rs
+1617082970|Timothy Stokoe|M|/src/main.rs
+1617082970|Timothy Stokoe|M|/src/tests_main.rs
+1617082970|Timothy Stokoe|M|/src/main.rs
+1617082970|Timothy Stokoe|M|/src/tests_main.rs
 1617088441|William McPherson|M|/src/main.rs
 1617088441|William McPherson|M|/src/tests_main.rs
 1617088441|William McPherson|M|/src/main.rs
 1617088441|William McPherson|M|/src/tests_main.rs
-1617148645|Timothy M Stokoe|M|/src/tests_main.rs
-1617148645|Timothy M Stokoe|M|/src/tests_main.rs
+1617148645|Timothy Stokoe|M|/src/tests_main.rs
+1617148645|Timothy Stokoe|M|/src/tests_main.rs
 1617341610|Josh Thiele|M|/app/src/App.css
 1617341610|Josh Thiele|M|/app/src/App.js
 1617341610|Josh Thiele|M|/app/src/Components/Login/Login.js
@@ -201,10 +201,10 @@
 1617343989|William McPherson|M|/app/src/Components/Signup/Signup.js
 1617343989|William McPherson|M|/app/src/Components/Login/Login.js
 1617343989|William McPherson|M|/app/src/Components/Signup/Signup.js
-1617940745|Timothy M Stokoe|M|/Cargo.toml
-1617940745|Timothy M Stokoe|M|/src/tests_main.rs
-1617940745|Timothy M Stokoe|M|/Cargo.toml
-1617940745|Timothy M Stokoe|M|/src/tests_main.rs
+1617940745|Timothy Stokoe|M|/Cargo.toml
+1617940745|Timothy Stokoe|M|/src/tests_main.rs
+1617940745|Timothy Stokoe|M|/Cargo.toml
+1617940745|Timothy Stokoe|M|/src/tests_main.rs
 1617946069|William McPherson|M|/src/main.rs
 1617946069|William McPherson|M|/src/tests_main.rs
 1617946069|William McPherson|M|/src/main.rs
@@ -243,16 +243,16 @@
 1618025840|Josh Thiele|M|/app/src/Components/Login/Login.js
 1618025840|Josh Thiele|M|/app/src/Components/Settings/Settings.js
 1618025840|Josh Thiele|M|/app/src/Components/Sidebar/Sidebar.js
-1618025842|Timothy M Stokoe|M|/src/tests_main.rs
-1618025842|Timothy M Stokoe|M|/src/tests_main.rs
-1618026700|Timothy M Stokoe|M|/src/tests_main.rs
-1618026700|Timothy M Stokoe|M|/src/tests_main.rs
-1618027185|Timothy M Stokoe|M|/README.md
-1618027185|Timothy M Stokoe|M|/README.md
-1618031628|Timothy M Stokoe|M|/src/main.rs
-1618031628|Timothy M Stokoe|M|/src/tests_main.rs
-1618031628|Timothy M Stokoe|M|/src/main.rs
-1618031628|Timothy M Stokoe|M|/src/tests_main.rs
+1618025842|Timothy Stokoe|M|/src/tests_main.rs
+1618025842|Timothy Stokoe|M|/src/tests_main.rs
+1618026700|Timothy Stokoe|M|/src/tests_main.rs
+1618026700|Timothy Stokoe|M|/src/tests_main.rs
+1618027185|Timothy Stokoe|M|/README.md
+1618027185|Timothy Stokoe|M|/README.md
+1618031628|Timothy Stokoe|M|/src/main.rs
+1618031628|Timothy Stokoe|M|/src/tests_main.rs
+1618031628|Timothy Stokoe|M|/src/main.rs
+1618031628|Timothy Stokoe|M|/src/tests_main.rs
 1618034325|William McPherson|M|/rust-toolchain
 1618034325|William McPherson|M|/rust-toolchain
 1618034490|William McPherson|M|/.gitignore
@@ -355,10 +355,10 @@
 1618493125|William McPherson|M|/src/response.rs
 1618493125|William McPherson|M|/src/routes.rs
 1618493125|William McPherson|M|/src/util.rs
-1618721325|Timothy M Stokoe|M|/src/test.rs
-1618721325|Timothy M Stokoe|M|/src/test.rs
-1618725088|Timothy M Stokoe|M|/src/test.rs
-1618725088|Timothy M Stokoe|M|/src/test.rs
+1618721325|Timothy Stokoe|M|/src/test.rs
+1618721325|Timothy Stokoe|M|/src/test.rs
+1618725088|Timothy Stokoe|M|/src/test.rs
+1618725088|Timothy Stokoe|M|/src/test.rs
 1618806898|Josh Thiele|M|/app/src/App.css
 1618806898|Josh Thiele|M|/app/src/Components/Signup/Signup.js
 1618806898|Josh Thiele|M|/app/src/index.css
@@ -417,8 +417,8 @@
 1619010570|William McPherson|M|/app/src/Components/Login/Login.js
 1619010570|William McPherson|M|/app/src/Components/Group/CreateNewGroup.js
 1619010570|William McPherson|M|/app/src/Components/Login/Login.js
-1619159536|Timothy M Stokoe|M|/src/test.rs
-1619159536|Timothy M Stokoe|M|/src/test.rs
+1619159536|Timothy Stokoe|M|/src/test.rs
+1619159536|Timothy Stokoe|M|/src/test.rs
 1619239126|Josh Thiele|A|/app/src/Components/CreateNewGroup.js
 1619239126|Josh Thiele|D|/app/src/Components/Group/CreateNewGroup.js
 1619239126|Josh Thiele|A|/app/src/Components/Login.js
@@ -456,7 +456,7 @@
 1619332897|Josh Thiele|D|/app/src/Components/CreateNewGroup.js
 1619332897|Josh Thiele|M|/app/src/Components/Login.js
 1619332897|Josh Thiele|M|/app/src/Components/Sidebar.js
-1619348226|Timothy M Stokoe|M|/src/test.rs
+1619348226|Timothy Stokoe|M|/src/test.rs
 1619397686|Josh Thiele|A|/app/public/privacy.html
 1619397686|Josh Thiele|M|/app/src/App.css
 1619397686|Josh Thiele|M|/app/src/App.js
@@ -477,7 +477,7 @@
 1619443692|William McPherson|M|/src/routes.rs
 1619443692|William McPherson|M|/src/test.rs
 1619444046|William McPherson|M|/src/routes.rs
-1619672762|Timothy M Stokoe|M|/src/test.rs
+1619672762|Timothy Stokoe|M|/src/test.rs
 1619681238|Josh Thiele|M|/app/src/App.css
 1619681238|Josh Thiele|M|/app/src/Components/Group.js
 1619681238|Josh Thiele|M|/app/src/Components/Sidebar.js
@@ -492,8 +492,8 @@
 1619688786|Josh Thiele|M|/app/src/Components/Group.js
 1619688786|Josh Thiele|A|/app/src/notcordsmall.png
 1619688786|Josh Thiele|A|/gource.sh
-1619767052|Timothy M Stokoe|M|/src/test.rs
-1619832050|Timothy M Stokoe|M|/src/test.rs
+1619767052|Timothy Stokoe|M|/src/test.rs
+1619832050|Timothy Stokoe|M|/src/test.rs
 1619845282|Josh Thiele|M|/app/src/App.css
 1619845282|Josh Thiele|M|/app/src/App.js
 1619845282|Josh Thiele|M|/app/src/Components/Group.js
@@ -509,8 +509,8 @@
 1619847939|Josh Thiele|M|/app/src/index.js
 1619852703|Josh Thiele|M|/app/src/Components/Group.js
 1619852703|Josh Thiele|M|/app/src/Components/Settings.js
-1619854218|Timothy M Stokoe|M|/src/test.rs
-1619866464|Timothy M Stokoe|M|/src/test.rs
+1619854218|Timothy Stokoe|M|/src/test.rs
+1619866464|Timothy Stokoe|M|/src/test.rs
 1619866542|Josh Thiele|M|/app/package.json
 1619866542|Josh Thiele|M|/app/src/Components/Group.js
 1619866542|Josh Thiele|M|/app/src/Components/Settings.js
@@ -521,28 +521,28 @@
 1619922969|Josh Thiele|M|/app/src/App.css
 1619922969|Josh Thiele|M|/app/src/Components/Group.js
 1619931497|Josh Thiele|M|/app/src/Components/Settings.js
-1619936078|Timothy M Stokoe|M|/src/routes.rs
-1619936078|Timothy M Stokoe|M|/src/util.rs
+1619936078|Timothy Stokoe|M|/src/routes.rs
+1619936078|Timothy Stokoe|M|/src/util.rs
 1619937423|Josh Thiele|M|/app/package.json
 1619937423|Josh Thiele|M|/app/src/App.css
 1619937423|Josh Thiele|M|/app/src/Components/Settings.js
 1619937423|Josh Thiele|M|/app/src/Components/Sidebar.js
 1619937940|Josh Thiele|M|/app/src/App.css
-1619939916|Timothy M Stokoe|M|/src/routes.rs
-1619939916|Timothy M Stokoe|M|/src/test.rs
-1619940450|Timothy M Stokoe|M|/src/routes.rs
-1619940450|Timothy M Stokoe|M|/src/util.rs
-1619940930|Timothy M Stokoe|M|/src/routes.rs
-1619940930|Timothy M Stokoe|M|/src/util.rs
+1619939916|Timothy Stokoe|M|/src/routes.rs
+1619939916|Timothy Stokoe|M|/src/test.rs
+1619940450|Timothy Stokoe|M|/src/routes.rs
+1619940450|Timothy Stokoe|M|/src/util.rs
+1619940930|Timothy Stokoe|M|/src/routes.rs
+1619940930|Timothy Stokoe|M|/src/util.rs
 1620002425|Josh Thiele|M|/app/src/Components/Group.js
 1620002895|Josh Thiele|M|/app/src/Components/Group.js
 1620003558|Josh Thiele|M|/app/src/Components/Group.js
-1620196179|Timothy M Stokoe|M|/src/routes.rs
-1620196179|Timothy M Stokoe|M|/src/util.rs
-1620260907|Timothy M Stokoe|M|/src/response.rs
-1620260907|Timothy M Stokoe|M|/src/routes.rs
-1620260907|Timothy M Stokoe|M|/src/util.rs
-1620263308|Timothy M Stokoe|M|/src/util.rs
+1620196179|Timothy Stokoe|M|/src/routes.rs
+1620196179|Timothy Stokoe|M|/src/util.rs
+1620260907|Timothy Stokoe|M|/src/response.rs
+1620260907|Timothy Stokoe|M|/src/routes.rs
+1620260907|Timothy Stokoe|M|/src/util.rs
+1620263308|Timothy Stokoe|M|/src/util.rs
 1620263646|Josh Thiele|M|/app/src/Components/Group.js
 1620263646|Josh Thiele|M|/app/src/Components/Sidebar.js
 1620269114|Josh Thiele|M|/app/src/App.css
@@ -553,16 +553,16 @@
 1620273983|Josh Thiele|M|/app/src/Components/Sidebar.js
 1620276743|Josh Thiele|M|/app/src/App.css
 1620276743|Josh Thiele|M|/app/src/Components/Settings.js
-1620283512|Timothy M Stokoe|M|/src/routes.rs
-1620283512|Timothy M Stokoe|M|/src/test.rs
+1620283512|Timothy Stokoe|M|/src/routes.rs
+1620283512|Timothy Stokoe|M|/src/test.rs
 1620308217|Josh Thiele|M|/app/src/Components/Group.js
-1620349876|Timothy M Stokoe|M|/src/routes.rs
-1620349876|Timothy M Stokoe|M|/src/test.rs
-1620554787|Timothy M Stokoe|M|/src/response.rs
-1620554787|Timothy M Stokoe|M|/src/routes.rs
-1620554787|Timothy M Stokoe|M|/src/util.rs
-1620556554|Timothy M Stokoe|M|/src/routes.rs
-1620556554|Timothy M Stokoe|M|/src/util.rs
+1620349876|Timothy Stokoe|M|/src/routes.rs
+1620349876|Timothy Stokoe|M|/src/test.rs
+1620554787|Timothy Stokoe|M|/src/response.rs
+1620554787|Timothy Stokoe|M|/src/routes.rs
+1620554787|Timothy Stokoe|M|/src/util.rs
+1620556554|Timothy Stokoe|M|/src/routes.rs
+1620556554|Timothy Stokoe|M|/src/util.rs
 1620617793|William McPherson|M|/src/routes.rs
 1620617793|William McPherson|M|/src/test.rs
 1620694296|Josh Thiele|M|/app/src/App.js
@@ -576,3 +576,11 @@
 1620720234|Josh Thiele|M|/app/src/App.css
 1620720234|Josh Thiele|M|/app/src/Components/Group.js
 1620721168|Josh Thiele|M|/app/src/Components/Group.js
+1620723593|Josh Thiele|M|/.gitignore
+1620723593|Josh Thiele|A|/avatars/Josh Thiele.png
+1620723593|Josh Thiele|A|/avatars/Kaidin Jackson.png
+1620723593|Josh Thiele|A|/avatars/Timothy Stokoe.png
+1620723593|Josh Thiele|A|/avatars/William McPherson.png
+1620723593|Josh Thiele|M|/gource.sh
+1620723593|Josh Thiele|A|/gource.txt
+1620723887|Josh Thiele|M|/gource.sh

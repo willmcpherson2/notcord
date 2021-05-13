@@ -388,6 +388,10 @@ div Sidebar {
   color: #001366;
 }
 
+.currentUser {
+  color: #aa0000;
+}
+
 .messageTitle span {
   font-weight: normal;
   font-size: 12px;

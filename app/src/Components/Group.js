@@ -182,12 +182,12 @@ export default class Group extends Component {
           if (currentDate.getDate() === time.getDate()) {
             date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
           } else if (currentDate.getDate() === time.getDate()+1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
-            date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+            date = "Yesterday at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
           }
           return (
             // TODO: Fix this to make it look good lol
             <div key={key}>
-              <p className="messageTitle">{val.username}<span>{date}</span></p>
+              <p className={this.currentUser === val.username ? "messageTitle currentUser" : "messageTitle"}>{val.username}<span>{date}</span></p>
               <p className="messageContent">{val.message}</p>
             </div>
             

@@ -33,6 +33,7 @@ pub enum Ok {
     Groups(Vec<String>),
     Channels(Vec<String>),
     Messages(Vec<Message>),
+    Conditional(bool),
 }
 
 #[derive(Serialize)]

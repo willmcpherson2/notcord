@@ -409,16 +409,43 @@ pub fn get_groups_for_user(mut cookies: Cookies, database: Database) -> Response
     ok!(Ok::Groups(groups))
 }
 
-#[post("/is_group_admin", data = "<group_name>")]
-pub fn is_group_admin(group_name: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
-    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+#[post("/is_group_admin", data = "<user_and_group>")]
+pub fn is_group_admin(user_and_group: Json<UserAndGroup>, mut cookies: Cookies, database: Database) -> Response {
+    let self_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_and_group.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
 
     let group_id: i64 = query_row!(
         database,
         "SELECT ROWID FROM groups WHERE name=?1",
-        &group_name.into_inner()
+        &user_and_group.group_name
     )
     .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &self_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::PermissionDenied);
+    }
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
 
     let is_admin = exists!(
         database,
@@ -428,11 +455,10 @@ pub fn is_group_admin(group_name: Json<&str>, mut cookies: Cookies, database: Da
     );
 
     if !is_admin {
-        return err!(Err::PermissionDenied);
- 
+        ok!(Ok::Conditional(false));
     }
 
-    ok!()
+    ok!(Ok::Conditional(true))
 } 
 
 #[post("/add_channel_to_group", data = "<channel_and_group>")]

@@ -42,6 +42,12 @@ pub struct GroupChannelMessage {
 }
 
 #[derive(Deserialize)]
+pub struct FriendMessage {
+    friend: String,
+    message: String,
+}
+
+#[derive(Deserialize)]
 pub struct ProcessGroupInvite {
     group_name: String,
     response: bool,
@@ -979,7 +985,7 @@ pub fn process_friend_request(
     process_friend_request: Json<ProcessFriendRequest>,
     mut cookies: Cookies,
     database: Database,
-) -> Response {
+    ) -> Response {
     let requestee_id = util::get_logged_in_user_id(&mut cookies)?;
     let requester_id: i64 = query_row!(
         database,
@@ -1000,11 +1006,29 @@ pub fn process_friend_request(
     }
 
     if process_friend_request.response {
+        
+        let channel_name = format!("{}_{}", &requester_id, &requestee_id);
+
         execute!(
             database,
-            "INSERT INTO friendships (user1_id, user2_id) VALUES (?1, ?2)",
+            "INSERT INTO channels (name) VALUES (?1)",
+            &channel_name
+        );
+
+        //Race condition if another channel with the same name is added pefore id can be retrieved
+
+        let channel_id: i64 = query_row!(
+            database,
+            "SELECT MAX(ROWID) FROM channels WHERE name=?1",
+            &channel_name
+        ).unwrap();
+
+        execute!(
+            database,
+            "INSERT INTO friendships (user1_id, user2_id, channel_id) VALUES (?1, ?2, ?3)",
             &requester_id,
-            &requestee_id
+            &requestee_id,
+            &channel_id
         );
     }
 
@@ -1048,18 +1072,33 @@ pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Datab
     }
 
     if friendship1_exists {
-        execute!(
+        
+        let channel_id: i64 = query_row!(
             database,
-            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+            "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2)",
             &logged_user_id,
             &user_id
-        );
-    } else if friendship2_exists {
+        ).unwrap();
+
         execute!(
             database,
-            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
-            &user_id,
-            &logged_user_id
+            "DELETE FROM channels WHERE ROWID=?1",
+            &channel_id
+        );
+
+    } else if friendship2_exists {
+        
+        let channel_id: i64 = query_row!(
+            database,
+            "SELECT channel_id FROM friendships WHERE (user1_id=?2 AND user2_id=?1)",
+            &logged_user_id,
+            &user_id
+        ).unwrap();
+
+        execute!(
+            database,
+            "DELETE FROM channels WHERE ROWID=?1",
+            &channel_id
         );
     }
     ok!()

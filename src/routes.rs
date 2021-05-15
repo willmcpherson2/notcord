@@ -1094,7 +1094,9 @@ pub fn get_peers(
         group_name,
     } = channel_and_group.into_inner();
 
-    let peers = state.peers(user_id, group_name, channel_name);
+    let peers = state
+        .peers(user_id, group_name, channel_name)
+        .unwrap_or_else(Vec::new);
     ok!(Ok::Peers(peers))
 }
 
@@ -1137,7 +1139,9 @@ pub fn get_signals(
         group_name,
     } = channel_and_group.into_inner();
 
-    let signals = state.take_signals(user_id, group_name, channel_name);
+    let signals = state
+        .take_signals(user_id, group_name, channel_name)
+        .unwrap_or_else(Vec::new);
     ok!(Ok::Signals(signals))
 }
 

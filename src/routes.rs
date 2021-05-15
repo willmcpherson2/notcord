@@ -1119,3 +1119,71 @@ pub fn get_friends_for_user(mut cookies: Cookies, database: Database) -> Respons
 
     ok!(Ok::Usernames(usernames))
 }
+
+#[post("/send_friend_message", data = "<friend_message>")]
+pub fn send_friend_message(friend_message: Json<FriendMessage>, mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let friend_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM user WHERE name=?1",
+        &friend_message.friend
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        &user_id,
+        &friend_id
+    )
+    .map_err(|_| Err::FrendshipDoesntExists)?;
+
+    let message = friend_message.into_inner().message;
+
+    execute!(
+        database,
+        "INSERT INTO messages (user_id, channel_id, message) VALUES (?1, ?2, ?3)",
+        &user_id,
+        &channel_id,
+        &message
+    );
+    ok!()
+}
+
+#[post("/get_friend_messages", data = "<friend>")]
+pub fn get_friend_messages(friend: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let friend_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM user WHERE name=?1",
+        &friend.into_inner()
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        &user_id,
+        &friend_id
+    )
+    .map_err(|_| Err::FrendshipDoesntExists)?;
+    
+    let messages: Vec<Message> = query_rows!(
+        database,
+        |row| Message {
+            message: row.get(0),
+            time: row.get(1),
+            username: row.get(2)
+        },
+        "SELECT messages.message, messages.time, users.username
+        FROM messages
+        JOIN users
+        ON messages.user_id = users.ROWID
+        WHERE channel_id=?1",
+        &channel_id
+    );
+
+    ok!(Ok::Messages(messages))
+}

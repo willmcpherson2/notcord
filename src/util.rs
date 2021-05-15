@@ -175,6 +175,8 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
             process_friend_request,
             delete_friendship,
             get_friends_for_user,
+            send_friend_message,
+            get_friend_messages,
         ],
     )
 }

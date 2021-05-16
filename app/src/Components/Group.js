@@ -32,6 +32,7 @@ export default class Group extends Component {
       voiceStream: null,
       voicePeers: {},
       audioPlayers: [],
+      currentVoiceChannel: ''
     }
   }
 

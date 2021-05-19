@@ -6,7 +6,7 @@ import { Modal, Button } from 'react-bootstrap';
 
 
 
-// Testing to see if text and image is rendered to assist users with the group page
+// Testing to see if text is rendered to assist users with the group page
 test("Text and image rendering", () => {
 
   const root = document.createElement("div");
@@ -21,7 +21,7 @@ test("Text and image rendering", () => {
 
 });
 
-// Testing to see if the New channel buttons can be clicked.
+// Testing to see if the New channel buttons can be clicked and if it opens the modal form.
 test("Testing the New Channel button", () => {
 
     const root = document.createElement("div");
@@ -39,8 +39,8 @@ test("Testing the New Channel button", () => {
         </Modal>,
         root
     );
-    const evt = new KeyboardEvent('keydown', { keyCode: 27 });
-    // 27 == Escape Key
+    const evt = new KeyboardEvent('keydown', { keyCode: 13 });
+    // Enter Key = 13
     document.dispatchEvent(evt);
     expect(openModal).toHaveBeenCalledTimes(0);
 
@@ -49,7 +49,7 @@ test("Testing the New Channel button", () => {
 });
 
 
-// Testing to see if I can input and send a message button.
+// Testing to see if the invite button works
 test("Testing the New Channel button", () => {
 
     const root = document.createElement("div");
@@ -96,7 +96,19 @@ test("Testing the invite + button", () => {
     // Creating variable for the new Channel button
     const newChannelButton = getByText(/Invite +/i);
     fireEvent.click(getByText(/Invite +/i));
+    //Test
     
 });
 
+// Testing to see what happens when the plus button is hovered over next to channel name.
+test("Testing the hover function", () => {
 
+    const root = document.createElement("div");
+    ReactDOM.render(<Group />, root);
+    const { getByText, getByLabelText, getByAltText, getByPlaceholderText, getByRole} = within(root);
+    const spy = jest.spyOn(Group.prototype,"componentDidMount");
+    fireEvent.mouseOver(getByText(/Invite +/i))
+    expect(spy).toHaveBeenCalled(0);
+    //Test
+    
+});

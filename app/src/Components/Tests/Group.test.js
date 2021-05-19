@@ -109,6 +109,5 @@ test("Testing the hover function", () => {
     const spy = jest.spyOn(Group.prototype,"componentDidMount");
     fireEvent.mouseOver(getByText(/Invite +/i))
     expect(spy).toHaveBeenCalled(0);
-    //Test
     
 });

@@ -100,7 +100,7 @@ test("Testing the invite + button", () => {
     
 });
 
-// Testing to see what happens when the plus button is hovered over next to channel name.
+// Testing to see what happens when the plus button is hovered over, next to channel name.
 test("Testing the hover function", () => {
 
     const root = document.createElement("div");
@@ -108,6 +108,23 @@ test("Testing the hover function", () => {
     const { getByText, getByLabelText, getByAltText, getByPlaceholderText, getByRole} = within(root);
     const spy = jest.spyOn(Group.prototype,"componentDidMount");
     fireEvent.mouseOver(getByText(/Invite +/i))
-    expect(spy).toHaveBeenCalled(0);
+    expect(spy).toHaveBeenCalledTimes(0);
     
+});
+
+// Testing to see what happens when the send button, next to channel name.
+test("Testing the leave group button", () => {
+
+    const root = document.createElement("div");
+    ReactDOM.render(<Group />, root);
+    const { getByText, getByLabelText, getByAltText, getByPlaceholderText, getByRole} = within(root);
+    
+    const messageInput = getByPlaceholderText(/message/i);
+    
+    //Simulating a user typing in there following message
+    fireEvent.change(messageInput, {target: {value: 'VER0001'}})
+    expect(messageInput.value).toEqual('VER0001');
+    fireEvent.click(getByText(/Send Message/i));
+    
+
 });

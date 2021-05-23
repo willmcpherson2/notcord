@@ -1298,3 +1298,34 @@ pub fn leave_voice(
     state.remove_user(user_id, group_name, channel_name);
     ok!()
 }
+
+#[post("/get_users_in_voice", data = "<channel_and_group>")]
+pub fn get_users_in_voice(
+    channel_and_group: Json<ChannelAndGroup>,
+    database: Database,
+    state: rocket::State<State>,
+) -> Response {
+    let ChannelAndGroup {
+        channel_name,
+        group_name,
+    } = channel_and_group.into_inner();
+
+    let users = state
+        .users_in_voice(group_name, channel_name)
+        .unwrap_or_else(Vec::new);
+
+    let mut usernames = vec![];
+
+    for user_id in users {
+        let username: String = query_row!(
+            database,
+            "SELECT username FROM users WHERE ROWID=?1",
+            &user_id
+        )
+        .unwrap();
+
+        usernames.push(username);
+    }
+
+    ok!(Ok::Usernames(usernames))
+}

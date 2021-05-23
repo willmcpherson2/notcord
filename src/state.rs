@@ -92,4 +92,12 @@ impl State {
 
         Some(())
     }
+
+    pub fn users_in_voice(&self, group: String, channel: String) -> Option<Vec<User>> {
+        let groups = self.0.lock().unwrap();
+        let group = groups.get(&group)?;
+        let channel = group.get(&channel)?;
+        let users = channel.keys().cloned().collect();
+        Some(users)
+    }
 }

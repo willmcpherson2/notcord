@@ -186,6 +186,7 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 signal,
                 get_signals,
                 leave_voice,
+                get_users_in_voice,
             ],
         )
         .manage(State::new())

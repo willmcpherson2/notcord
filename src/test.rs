@@ -994,9 +994,12 @@ fn remove_user_from_group_success() {
         )
         .dispatch();
     client
-        .post("/accept_invite")
+        .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("\"test_group01\"")
+        .body("{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+                }")
         .dispatch();
 
     let message = client

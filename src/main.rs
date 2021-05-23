@@ -25,6 +25,7 @@ mod util;
 #[macro_use]
 mod response;
 mod routes;
+mod state;
 
 fn main() {
     util::init_database_file(Path::new("database.db"));

@@ -1,4 +1,5 @@
 use crate::response::*;
+use crate::state::{Signal, State, User};
 use crate::util;
 use crate::util::*;
 use rocket::http::{ContentType, Cookie, Cookies};
@@ -64,6 +65,14 @@ pub struct Message {
     message: String,
     time: String,
     username: String,
+}
+
+#[derive(Deserialize)]
+pub struct SignalRequest {
+    signal: String,
+    peer: User,
+    channel_name: String,
+    group_name: String,
 }
 
 #[get("/")]
@@ -1190,4 +1199,98 @@ pub fn get_friend_messages(
     );
 
     ok!(Ok::Messages(messages))
+}
+
+#[post("/join_voice", data = "<channel_and_group>")]
+pub fn join_voice(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    state: rocket::State<State>,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let ChannelAndGroup {
+        channel_name,
+        group_name,
+    } = channel_and_group.into_inner();
+
+    state.add_user(user_id, group_name, channel_name);
+    ok!()
+}
+
+#[post("/get_peers", data = "<channel_and_group>")]
+pub fn get_peers(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    state: rocket::State<State>,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let ChannelAndGroup {
+        channel_name,
+        group_name,
+    } = channel_and_group.into_inner();
+
+    let peers = state.peers(user_id, group_name, channel_name);
+    ok!(Ok::Peers(peers))
+}
+
+#[post("/signal", data = "<signal_request>")]
+pub fn signal(
+    signal_request: Json<SignalRequest>,
+    mut cookies: Cookies,
+    state: rocket::State<State>,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let SignalRequest {
+        signal,
+        peer,
+        channel_name: channel,
+        group_name: group,
+    } = signal_request.into_inner();
+
+    // Here, the signal "switches sides". The user becomes the peer and the peer becomes the user.
+    let user = peer;
+    let signal = Signal {
+        peer: user_id,
+        signal,
+    };
+    state.add_signal(user, group, channel, signal);
+
+    ok!()
+}
+
+#[post("/get_signals", data = "<channel_and_group>")]
+pub fn get_signals(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    state: rocket::State<State>,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let ChannelAndGroup {
+        channel_name,
+        group_name,
+    } = channel_and_group.into_inner();
+
+    let signals = state.take_signals(user_id, group_name, channel_name);
+    ok!(Ok::Signals(signals))
+}
+
+#[post("/leave_voice", data = "<channel_and_group>")]
+pub fn leave_voice(
+    channel_and_group: Json<ChannelAndGroup>,
+    mut cookies: Cookies,
+    state: rocket::State<State>,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let ChannelAndGroup {
+        channel_name,
+        group_name,
+    } = channel_and_group.into_inner();
+
+    state.remove_user(user_id, group_name, channel_name);
+    ok!()
 }

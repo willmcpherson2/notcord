@@ -47,28 +47,30 @@ export default class Settings extends Component {
     this.setState({ invites: invites })
   }
 
-  async acceptInvite(group) {
+  async acceptInvite(group, response) {
     //This invites users
-    const data = await fetch(process.env.REACT_APP_API_URL + '/accept_invite', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/process_group_invite', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify(group.toString())
+      body: JSON.stringify({
+        group_name: group.toString(),
+        response: response
+      })
     })
-    const accept = data.json();
+    const accept = await data.json();
     if (accept === "Ok") {
-      console.log("INVITE ACCEPTED")
       this.getInvites()
+      const message = response ? "Accepted" : "Declined"
       this.setState({
-        alertMessage: "Invitation Accepted",
+        alertMessage: "Invitation to Group " + group.toString() + " " + message,
         showAlert: true,
-        success: true,
+        success: response,
       })
     } else {
-      console.log(accept)
       this.setState({
         alertMessage: accept,
         showAlert: true,
@@ -82,7 +84,8 @@ export default class Settings extends Component {
       return (
         this.state.invites.map((val, key) => {
           return (
-            <div key={key}>{val}  <Button variant="success" onClick={() => { this.acceptInvite(val) }}>Accept</Button> <Button variant="danger">Decline (Not Implemented)</Button></div>
+            <div key={key}>{val}  <Button variant="success" onClick={() => { this.acceptInvite(val, true) }}>Accept</Button>
+              <Button variant="danger" onClick={() => { this.acceptInvite(val, false) }}>Decline</Button></div>
           )
         })
       )
@@ -138,11 +141,12 @@ export default class Settings extends Component {
   render() {
     return (
       <Container className='settings topPad'>
-        <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false }) }}>
+        <Modal show={this.state.inviteShow} onHide={async () => { await this.setState({ inviteShow: false }); window.location.reload(); }}>
           <Modal.Header closeButton>
             <Modal.Title>Invitations</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             {this.renderInvites()}
           </Modal.Body>
         </Modal>

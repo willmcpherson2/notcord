@@ -1,9 +1,13 @@
 import { React, Component } from 'react';
-import { Button, Form, Row, Col, Modal, Alert } from 'react-bootstrap';
-import { GearIcon } from '@primer/octicons-react';
+import { Button, Form, Col, Modal, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { GearIcon, PlusIcon } from '@primer/octicons-react';
+import Peer from 'simple-peer';
 import '../App.css'
 
 let reRender = null;
+let peerUpdate = null;
+let currentUser = null;
+let isAdmin = false;
 export default class Group extends Component {
   constructor(props) {
     super(props);
@@ -23,10 +27,46 @@ export default class Group extends Component {
       deleteChannelShow: false,
       showAlert: false,
       alertMessage: '',
-      success: false
+      success: false,
+      inVoiceChat: false,
+      voiceStream: null,
+      voicePeers: {},
+      audioPlayers: [],
+      currentVoiceChannel: ''
     }
   }
 
+  async getUsername() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    })
+    const user = await data.json()
+    console.log(user)
+    return user
+  }
+
+  async isGroupAdmin() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/is_group_admin', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(this.props.groupName)
+    })
+    const user = await data.json()
+    if (user === "Ok") {
+      return true;
+    } else {
+      return false;
+    }
+  }
   async getChannels() {
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_channels_in_group', {
       method: 'POST',
@@ -34,7 +74,9 @@ export default class Group extends Component {
       body: JSON.stringify(this.props.groupName)
     })
     const channels = await data.json();
-    this.setState({ channels: [...channels] })
+    await this.setState({ channels: [...channels] })
+    await this.setState({ currentChannel: this.state.channels[0] })
+    this.renderMessages(this.state.currentChannel)
   }
 
   async getUsersInChannel() {
@@ -55,13 +97,16 @@ export default class Group extends Component {
   }
 
   //This is used on the first load of the component. When the user 'activates' it. It is used only 1 time during load.
-  componentDidMount() {
+  async componentDidMount() {
     this.getChannels();
-    this.constantRender()
+    this.constantRender();
+    this.scrollToBottom();
+    this.currentUser = await this.getUsername();
+    this.isAdmin = await this.isGroupAdmin();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     //Checks the groupName current to the previous one last update, if they are not the same, then get the new channels for this new group.
     if (this.props.groupName !== prevProps.groupName) {
       //Fetches the channels and assigns them to the 'channels' array state.
@@ -70,6 +115,9 @@ export default class Group extends Component {
         this.renderMessages(this.state.currentChannel);
       }
     }
+    if (this.state.messages.length !== prevState.messages.length) {
+      this.scrollToBottom();
+    }
   }
 
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
@@ -77,19 +125,32 @@ export default class Group extends Component {
     return (
       this.state.channels.map((val, key) => {
         return (
-          <div key={key} className="max">
-            <button onClick={() => { this.setState({ currentChannel: val }, () => this.renderMessages(val)) }}>{val}</button>
-            <button onClick={() => {
+          <div key={key}>
+            <button
+              className={this.state.currentChannel === val ? 'channelBar selected' : 'channelBar'}
+              onClick={() => {
+                this.setState({ currentChannel: val },
+                  () => this.renderMessages(val))
+              }}># {val}</button>
+
+            <button className="channelOverlay" onClick={() => {
               this.setState({ settingsShow: true, currentChannel: val }, () => {
                 this.getUsersInChannel()
                 this.renderUsers();
               })
 
-            }}><GearIcon size={16} /></button>
+            }}><GearIcon size={24} /></button>
           </div>
         )
       })
     )
+  }
+
+  scrollToBottom() {
+    const scrollHeight = this.messageList.scrollHeight;
+    const height = this.messageList.clientHeight;
+    const maxScrollTop = scrollHeight - height;
+    this.messageList.scrollTop = maxScrollTop > 0 ? maxScrollTop : 0;
   }
 
   async renderMessages(channel) {
@@ -117,10 +178,20 @@ export default class Group extends Component {
             "July", "August", "September", "October", "November", "December"
           ];
           let time = new Date(val.time + " UTC");
-          let date = time.getDay() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " - " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          let date = time.getDate() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          let currentDate = new Date();
+          if (currentDate.getDate() === time.getDate()) {
+            date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          } else if (currentDate.getDate() === time.getDate()+1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
+            date = "Yesterday at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          }
           return (
             // TODO: Fix this to make it look good lol
-            <p key={key}><span>({date})</span><strong>{val.username}</strong>: {val.message}</p>
+            <div key={key}>
+              <p className={this.currentUser === val.username ? "messageTitle currentUser" : "messageTitle"}>{val.username}<span>{date}</span></p>
+              <p className="messageContent">{val.message}</p>
+            </div>
+            
           )
         })
       )
@@ -135,8 +206,9 @@ export default class Group extends Component {
       this.renderItems();
     }, 5000);
   }
-  componentWillUnmount(){
+  componentWillUnmount() {
     clearInterval(reRender);
+    this.leaveVoice();
   }
   createChannel = async () => {
     const { name } = this.state;
@@ -193,6 +265,7 @@ export default class Group extends Component {
     }
   }
   sendMessage = async (e) => {
+    e.preventDefault();
     await fetch(process.env.REACT_APP_API_URL + '/send_message', {
       method: 'POST',
       headers: {
@@ -213,7 +286,11 @@ export default class Group extends Component {
     try {
       return (
         this.state.users.map((val, key) => {
-          if (this.state.usersInChannel[key] !== undefined) {
+          if (this.state.usersInChannel[key] === this.currentUser && this.isAdmin) {
+            return (
+              <Form.Check key={key} id={val} type="checkbox" label={val} checked readOnly />
+            )
+          } else if (this.state.usersInChannel[key] !== undefined) {
             return (
               <Form.Check key={key} id={val} type="checkbox" label={val} defaultChecked />
             )
@@ -272,7 +349,7 @@ export default class Group extends Component {
         console.log(user + " " + users)
         this.setState({ settingsShow: false })
         //And this will remove them. 
-        // BUG: This removes admins included, and can remove the person who made it, this should be validated at a later stage
+        // TODO: Backend should have a route that is 'isAdmin'
       } else if (!document.getElementById(user).checked) {
         const data = await fetch(process.env.REACT_APP_API_URL + '/remove_user_from_channel', {
           method: 'POST',
@@ -293,25 +370,36 @@ export default class Group extends Component {
       }
     });
   }
-  //TODO: Ensure at least 1 channel remains at all times.
   deleteChannel = async () => {
-    await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        channel_name: this.state.currentChannel,
-        group_name: this.props.groupName
+    if (this.state.channels.length > 1) {
+      console.log(this.state.channels.length)
+      await fetch(process.env.REACT_APP_API_URL + '/remove_channel_from_group', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName
+        })
       })
-    })
-    console.log(this.state.currentChannel + " Deleted")
-    this.setState({ settingsShow: false, deleteChannelShow: false });
-    this.getChannels();
+      console.log(this.state.currentChannel + " Deleted")
+      this.setState({ settingsShow: false, deleteChannelShow: false });
+      this.getChannels();
+    } else {
+      this.setState({
+        alertMessage: "Cannot delete last channel. At least 1 channel must remain at all times.",
+        showAlert: true,
+        success: false,
+      })
+      console.log(this.state.channels.length)
+    }
   }
   leaveGroup = async () => {
+    // TODO: Either make another user admin, or if the admin leaves, the group is deleted.
+    // TODO: Also add a delete group route into the backend
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_username', {
       method: 'POST',
       headers: {
@@ -334,7 +422,6 @@ export default class Group extends Component {
       })
     })
     window.location.reload();
-    // FIXME: Removing the admin means no admins are in this group now. fix permissions
   }
   alert() {
     return (
@@ -344,6 +431,144 @@ export default class Group extends Component {
     );
   }
 
+  joinVoice = async () => {
+    this.setState({
+      inVoiceChat: true,
+      voiceStream: await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true,
+      }),
+    });
+
+    await fetch(process.env.REACT_APP_API_URL + '/join_voice', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel_name: this.state.currentChannel,
+        group_name: this.props.groupName,
+      }),
+    });
+    try {
+      await this.getPeers(true);
+
+      peerUpdate = setInterval(async () => {
+        await this.getPeers(false);
+        await this.getSignals();
+      }, 1000);
+    } catch (e) { console.log(e) }
+
+  }
+
+  async getPeers(isInitiator) {
+    try {
+      const response = await fetch(process.env.REACT_APP_API_URL + '/get_peers', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName,
+        }),
+      });
+
+      const peerIds = await response.json();
+
+      this.setState({
+        voicePeers: Object.fromEntries(Object.entries(this.state.voicePeers).filter(([key, _]) => peerIds.includes(parseInt(key)))),
+      });
+
+      peerIds.forEach(peerId => {
+        if (this.state.voicePeers[peerId] === undefined) {
+          const peer = new Peer({ initiator: isInitiator, stream: this.state.voiceStream });
+          peer.on('signal', signal => this.sendSignal(signal, peerId));
+          peer.on('track', (_, peerStream) => this.addAudioPlayer(peerStream));
+          this.state.voicePeers[peerId] = peer;
+        }
+      });
+    } catch (e) { console.log(e) }
+
+  }
+
+  async getSignals() {
+    try {
+      const response = await fetch(process.env.REACT_APP_API_URL + '/get_signals', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName,
+        }),
+      });
+
+      const peerSignals = await response.json();
+      peerSignals.forEach(signal => {
+        this.state.voicePeers[signal.peer].signal(signal.signal);
+      });
+    } catch (e) { console.log(e) }
+
+  }
+
+  async sendSignal(signal, peerId) {
+    await fetch(process.env.REACT_APP_API_URL + '/signal', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        signal: JSON.stringify(signal), // Send object as string because we want to treat it opaquely.
+        peer: peerId,
+        channel_name: this.state.currentChannel,
+        group_name: this.props.groupName,
+      }),
+    });
+  }
+
+  addAudioPlayer(peerStream) {
+    const player = document.createElement('audio');
+    if ('srcObject' in player) {
+      player.srcObject = peerStream;
+    } else {
+      player.src = window.URL.createObjectURL(peerStream); // For older browsers
+    }
+    player.play();
+    this.state.audioPlayers.push(player);
+  }
+
+  leaveVoice = async () => {
+    clearInterval(peerUpdate);
+
+    Object.values(this.state.voicePeers).forEach(peer => peer.destroy());
+
+    this.setState({
+      inVoiceChat: false,
+      voiceStream: null,
+      voicePeers: {},
+      audioPlayers: [],
+    });
+
+    await fetch(process.env.REACT_APP_API_URL + '/leave_voice', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel_name: this.state.currentChannel,
+        group_name: this.props.groupName,
+      }),
+    });
+  }
+
+
 
   render() {
     return (
@@ -351,7 +576,7 @@ export default class Group extends Component {
         {/**NAVIGATION BAR */}
 
         {/**Change Channel Settings */}
-        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false }) }}>
+        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Channel Settings</Modal.Title>
           </Modal.Header>
@@ -369,7 +594,7 @@ export default class Group extends Component {
         </Modal>
 
         {/**Create New Channel */}
-        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false }) }}>
+        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Create New Channel</Modal.Title>
           </Modal.Header>
@@ -386,14 +611,13 @@ export default class Group extends Component {
           </Modal.Body>
         </Modal>
 
-
         {/**Invite people to group */}
         <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Invite People</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
             <Form>
               <Form.Group>
@@ -407,11 +631,12 @@ export default class Group extends Component {
         </Modal>
 
         {/**Delete Channel Confirm */}
-        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false }) }}>
+        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Delete Channel</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             Are you sure you want to delete this channel? This action is unreversable.
           </Modal.Body>
           <Modal.Footer>
@@ -420,7 +645,7 @@ export default class Group extends Component {
         </Modal>
 
         {/**Leave Group Confirm */}
-        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false }) }}>
+        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
             <Modal.Title>Leave Group</Modal.Title>
           </Modal.Header>
@@ -432,40 +657,61 @@ export default class Group extends Component {
           </Modal.Footer>
         </Modal>
 
-        <Row>
-          {/*// TODO: Fix this so the navigation area is a fixed size. */}
-          <Col sm={3} className="navigation">
-            <h1>{this.props.groupName}<Button onClick={() => { this.setState({ inviteShow: true }) }} variant="info" >Invite +</Button></h1>
+        <div className="navigation">
+          <div className="heading">
+            <OverlayTrigger
+              placement='bottom'
+              delay={{ show: 1000, hide: 0 }}
+              overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
+              <h3 className="groupName">{this.props.groupName}</h3>
+            </OverlayTrigger>
 
-            {this.renderChannels()}
+            <OverlayTrigger
+              placement='right'
+              delay={{ show: 500, hide: 0 }}
+              overlay={<Tooltip>Invite User to Group</Tooltip>}>
+              <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
+            </OverlayTrigger>
+
+          </div>
+
+
+
+          {this.renderChannels()}
+          <div className="extras">
             <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
-            <Button onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
-          </Col>
+            <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
+          </div>
 
+        </div>
 
-
-
-
-          <Col>
-            <div className="messages">{this.renderItems()}</div>
-            <div className="messageBox">
-              <Form>
-                <Form.Row>
-                  <Col>
-                  <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-                  </Col>
-                  <Col md="auto">
-                  <Button varient="primary" onClick={this.sendMessage}>Send Message</Button>
-                  </Col>
-                </Form.Row>
-                
-            </Form>
+        <div className="messageArea">
+          <div className="infoBox">
+            <div className="info"><p>{this.state.currentChannel}</p></div>
+            <div className="callButton">
+              <Button variant="success" className={this.state.inVoiceChat ? "noDisplay" : ""} onClick={this.joinVoice}>Join Voice Call</Button>
+              <Button variant="danger" className={this.state.inVoiceChat ? "" : "noDisplay"} onClick={this.leaveVoice}>Leave Call</Button>
             </div>
 
-            
-          </Col>
-        </Row>
 
+          </div>
+          <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
+          <div className="messageBox">
+            <Form onSubmit={this.sendMessage}>
+              <Form.Row>
+                <Col>
+                  <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                </Col>
+                <Col md="auto">
+                  <Button varient="primary" type="submit">Send Message</Button>
+                </Col>
+              </Form.Row>
+
+            </Form>
+          </div>
+
+
+        </div>
 
       </div>
     );

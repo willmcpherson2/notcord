@@ -57,6 +57,7 @@ export default class Sidebar extends Component {
 
 
   createGroup = async () => {
+    //Here we create a group and immediately create a channel "general"
     const { name } = this.state;
     const data = await fetch(process.env.REACT_APP_API_URL + '/add_group', {
       method: 'POST',
@@ -70,16 +71,28 @@ export default class Sidebar extends Component {
     const newGroup = await data.json();
     if (newGroup === "Ok") {
       this.setState({ show: false });
-      this.props.group(name)
-      this.props.setView("group")
     } else {
       console.log(newGroup)
-      this.setState({ 
+      this.setState({
         alertMessage: "Group Already Exists",
         showAlert: true
-       });
+      });
     }
-    
+    //This creates the channel
+    await fetch(process.env.REACT_APP_API_URL + '/add_channel_to_group', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        channel_name: "General",
+        group_name: name
+      })
+    })
+    await this.props.group(name)
+    this.props.setView("group")
     this.getGroups();
   }
 
@@ -132,9 +145,29 @@ export default class Sidebar extends Component {
         <hr className="hozLine" />
         {this.renderGroups()}
         <Row>
-          <button className="groupButton Settings" onClick={() => { this.setState({ show: true }) }}><PlusIcon size={24} /></button>
-          <button className="groupButton Settings" onClick={() => this.props.setView("settings")}><GearIcon size={24} /></button>
-          <button className="groupButton Settings bottom" onClick={this.logout}><SignOutIcon size={24} /></button>
+          <OverlayTrigger
+            placement="right"
+            delay={{ show: 10, hide: 0 }}
+            overlay={<Tooltip id="button-tooltip">Create New Group</Tooltip>}>
+            <button className="groupButton Settings" onClick={() => { this.setState({ show: true }) }}><PlusIcon size={24} /></button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="right"
+            delay={{ show: 10, hide: 0 }}
+            overlay={<Tooltip id="button-tooltip">Settings</Tooltip>}>
+            <button className="groupButton Settings" onClick={() => this.props.setView("settings")}><GearIcon size={24} /></button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="right"
+            delay={{ show: 10, hide: 0 }}
+            overlay={<Tooltip id="button-tooltip">Logout</Tooltip>}>
+            <button className="groupButton Settings bottom" onClick={this.logout}><SignOutIcon size={24} /></button>
+          </OverlayTrigger>
+
+
+
+          
+          
         </Row>
       </Container>
     );

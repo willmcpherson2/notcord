@@ -42,35 +42,43 @@ impl State {
         channel.insert(user, Vec::new());
     }
 
-    pub fn peers(&self, user: User, group: String, channel: String) -> Vec<User> {
+    pub fn peers(&self, user: User, group: String, channel: String) -> Option<Vec<User>> {
         let groups = self.0.lock().unwrap();
-        let group = groups.get(&group).unwrap();
-        let channel = group.get(&channel).unwrap();
-        channel.keys().cloned().filter(|&id| id != user).collect()
+        let group = groups.get(&group)?;
+        let channel = group.get(&channel)?;
+        let peers = channel.keys().cloned().filter(|&id| id != user).collect();
+        Some(peers)
     }
 
-    pub fn add_signal(&self, user: User, group: String, channel: String, signal: Signal) {
+    pub fn add_signal(
+        &self,
+        user: User,
+        group: String,
+        channel: String,
+        signal: Signal,
+    ) -> Option<()> {
         let mut groups = self.0.lock().unwrap();
-        let group = groups.get_mut(&group).unwrap();
-        let channel = group.get_mut(&channel).unwrap();
-        let signals = channel.get_mut(&user).unwrap();
+        let group = groups.get_mut(&group)?;
+        let channel = group.get_mut(&channel)?;
+        let signals = channel.get_mut(&user)?;
         signals.push(signal);
+        Some(())
     }
 
-    pub fn take_signals(&self, user: User, group: String, channel: String) -> Vec<Signal> {
+    pub fn take_signals(&self, user: User, group: String, channel: String) -> Option<Vec<Signal>> {
         let mut groups = self.0.lock().unwrap();
-        let group = groups.get_mut(&group).unwrap();
-        let channel = group.get_mut(&channel).unwrap();
-        let signals = channel.get_mut(&user).unwrap();
+        let group = groups.get_mut(&group)?;
+        let channel = group.get_mut(&channel)?;
+        let signals = channel.get_mut(&user)?;
         let new_signals = signals.clone();
         signals.clear();
-        new_signals
+        Some(new_signals)
     }
 
-    pub fn remove_user(&self, user: User, group_name: String, channel_name: String) {
+    pub fn remove_user(&self, user: User, group_name: String, channel_name: String) -> Option<()> {
         let mut groups = self.0.lock().unwrap();
-        let group = groups.get_mut(&group_name).unwrap();
-        let channel = group.get_mut(&channel_name).unwrap();
+        let group = groups.get_mut(&group_name)?;
+        let channel = group.get_mut(&channel_name)?;
 
         channel.remove(&user);
 
@@ -81,5 +89,7 @@ impl State {
                 groups.remove(&group_name);
             }
         }
+
+        Some(())
     }
 }

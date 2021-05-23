@@ -67,7 +67,7 @@ impl<'r> Responder<'r> for Response {
                 Ok::Groups(groups) => Json(groups).respond_to(request),
                 Ok::Channels(channels) => Json(channels).respond_to(request),
                 Ok::Messages(messages) => Json(messages).respond_to(request),
-                Ok::Conditional(condition) => Json(condition).respond_to(request),                
+                Ok::Conditional(condition) => Json(condition).respond_to(request),
                 _ => Json(ok).respond_to(request),
             },
             Response::Err(err) => Json(err).respond_to(request),

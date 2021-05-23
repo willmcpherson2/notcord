@@ -786,10 +786,12 @@ fn process_group_invite_success() {
     let message = client
         .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"group_name\":\"test_group01\",
                 \"response\":true
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -806,10 +808,12 @@ fn process_group_invite_not_logged_in() {
     let message = client
         .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"group_name\":\"test_group01\",
                 \"response\":true
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -847,10 +851,12 @@ fn process_group_invite_group_doesnt_exist() {
     let message = client
         .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"group_name\":\"test_group01\",
                 \"response\":true
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -913,10 +919,12 @@ fn process_group_invite_invite_doesnt_exist() {
     let message = client
         .post("/process_group_invite")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"group_name\":\"test_group01\",
                 \"response\":true
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 

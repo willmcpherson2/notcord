@@ -43,6 +43,12 @@ pub struct GroupChannelMessage {
 }
 
 #[derive(Deserialize)]
+pub struct FriendMessage {
+    friend: String,
+    message: String,
+}
+
+#[derive(Deserialize)]
 pub struct ProcessGroupInvite {
     group_name: String,
     response: bool,
@@ -205,7 +211,7 @@ pub fn invite_user_to_group(
     user_and_group: Json<UserAndGroup>,
     database: Database,
     mut cookies: Cookies,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -275,7 +281,11 @@ pub fn get_invites(mut cookies: Cookies, database: Database) -> Response {
 }
 
 #[post("/process_group_invite", data = "<group_response>")]
-pub fn process_group_invite(group_response: Json<ProcessGroupInvite>, mut cookies: Cookies, database: Database) -> Response {
+pub fn process_group_invite(
+    group_response: Json<ProcessGroupInvite>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -292,7 +302,6 @@ pub fn process_group_invite(group_response: Json<ProcessGroupInvite>, mut cookie
         &group_id
     )
     .map_err(|_| Err::InviteDoesNotExist)?;
-
 
     if group_response.response {
         execute!(
@@ -317,7 +326,7 @@ pub fn remove_user_from_group(
     user_and_group: Json<UserAndGroup>,
     database: Database,
     mut cookies: Cookies,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -413,21 +422,50 @@ pub fn get_groups_for_user(mut cookies: Cookies, database: Database) -> Response
         &user_id
     );
 
-
-
     ok!(Ok::Groups(groups))
 }
 
-#[post("/is_group_admin", data = "<group_name>")]
-pub fn is_group_admin(group_name: Json<&str>, mut cookies: Cookies, database: Database) -> Response {
-    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+#[post("/is_group_admin", data = "<user_and_group>")]
+pub fn is_group_admin(
+    user_and_group: Json<UserAndGroup>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let self_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let user_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM users WHERE username=?1",
+        &user_and_group.username
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
 
     let group_id: i64 = query_row!(
         database,
         "SELECT ROWID FROM groups WHERE name=?1",
-        &group_name.into_inner()
+        &user_and_group.group_name
     )
     .map_err(|_| Err::GroupDoesNotExist)?;
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &self_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::PermissionDenied);
+    }
+
+    let user_in_group = exists!(
+        database,
+        "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
+        &user_id,
+        &group_id
+    );
+    if !user_in_group {
+        return err!(Err::UserNotInGroup);
+    }
 
     let is_admin = exists!(
         database,
@@ -437,19 +475,18 @@ pub fn is_group_admin(group_name: Json<&str>, mut cookies: Cookies, database: Da
     );
 
     if !is_admin {
-        return err!(Err::PermissionDenied);
- 
+        ok!(Ok::Conditional(false));
     }
 
-    ok!()
-} 
+    ok!(Ok::Conditional(true))
+}
 
 #[post("/add_channel_to_group", data = "<channel_and_group>")]
 pub fn add_channel_to_group(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -516,7 +553,7 @@ pub fn remove_channel_from_group(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -560,7 +597,7 @@ pub fn add_user_to_channel(
     user_group_channel: Json<UserGroupChannel>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -629,7 +666,7 @@ pub fn remove_user_from_channel(
     user_group_channel: Json<UserGroupChannel>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let admin_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -701,7 +738,7 @@ pub fn get_users_in_channel(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -757,7 +794,7 @@ pub fn get_channels_in_group(
     group_name: Json<&str>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -799,7 +836,7 @@ pub fn send_message(
     group_channel_message: Json<GroupChannelMessage>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -854,7 +891,7 @@ pub fn get_messages(
     channel_and_group: Json<ChannelAndGroup>,
     mut cookies: Cookies,
     database: Database,
-    ) -> Response {
+) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
 
     let group_id: i64 = query_row!(
@@ -983,11 +1020,29 @@ pub fn process_friend_request(
     }
 
     if process_friend_request.response {
+        let channel_name = format!("{}_{}", &requester_id, &requestee_id);
+
         execute!(
             database,
-            "INSERT INTO friendships (user1_id, user2_id) VALUES (?1, ?2)",
+            "INSERT INTO channels (name) VALUES (?1)",
+            &channel_name
+        );
+
+        //Race condition if another channel with the same name is added pefore id can be retrieved
+
+        let channel_id: i64 = query_row!(
+            database,
+            "SELECT MAX(ROWID) FROM channels WHERE name=?1",
+            &channel_name
+        )
+        .unwrap();
+
+        execute!(
+            database,
+            "INSERT INTO friendships (user1_id, user2_id, channel_id) VALUES (?1, ?2, ?3)",
             &requester_id,
-            &requestee_id
+            &requestee_id,
+            &channel_id
         );
     }
 
@@ -1031,19 +1086,25 @@ pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Datab
     }
 
     if friendship1_exists {
-        execute!(
+        let channel_id: i64 = query_row!(
             database,
-            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
+            "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2)",
             &logged_user_id,
             &user_id
-        );
+        )
+        .unwrap();
+
+        execute!(database, "DELETE FROM channels WHERE ROWID=?1", &channel_id);
     } else if friendship2_exists {
-        execute!(
+        let channel_id: i64 = query_row!(
             database,
-            "DELETE FROM friendships WHERE user1_id=?1 AND user2_id=?2",
-            &user_id,
-            &logged_user_id
-        );
+            "SELECT channel_id FROM friendships WHERE (user1_id=?2 AND user2_id=?1)",
+            &logged_user_id,
+            &user_id
+        )
+        .unwrap();
+
+        execute!(database, "DELETE FROM channels WHERE ROWID=?1", &channel_id);
     }
     ok!()
 }
@@ -1062,6 +1123,82 @@ pub fn get_friends_for_user(mut cookies: Cookies, database: Database) -> Respons
     );
 
     ok!(Ok::Usernames(usernames))
+}
+
+#[post("/send_friend_message", data = "<friend_message>")]
+pub fn send_friend_message(
+    friend_message: Json<FriendMessage>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let friend_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM user WHERE name=?1",
+        &friend_message.friend
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        &user_id,
+        &friend_id
+    )
+    .map_err(|_| Err::FrendshipDoesntExists)?;
+
+    let message = friend_message.into_inner().message;
+
+    execute!(
+        database,
+        "INSERT INTO messages (user_id, channel_id, message) VALUES (?1, ?2, ?3)",
+        &user_id,
+        &channel_id,
+        &message
+    );
+    ok!()
+}
+
+#[post("/get_friend_messages", data = "<friend>")]
+pub fn get_friend_messages(
+    friend: Json<&str>,
+    mut cookies: Cookies,
+    database: Database,
+) -> Response {
+    let user_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let friend_id: i64 = query_row!(
+        database,
+        "SELECT ROWID FROM user WHERE name=?1",
+        &friend.into_inner()
+    )
+    .map_err(|_| Err::UserDoesNotExist)?;
+
+    let channel_id: i64 = query_row!(
+        database,
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        &user_id,
+        &friend_id
+    )
+    .map_err(|_| Err::FrendshipDoesntExists)?;
+
+    let messages: Vec<Message> = query_rows!(
+        database,
+        |row| Message {
+            message: row.get(0),
+            time: row.get(1),
+            username: row.get(2)
+        },
+        "SELECT messages.message, messages.time, users.username
+        FROM messages
+        JOIN users
+        ON messages.user_id = users.ROWID
+        WHERE channel_id=?1",
+        &channel_id
+    );
+
+    ok!(Ok::Messages(messages))
 }
 
 #[post("/join_voice", data = "<channel_and_group>")]
@@ -1094,7 +1231,9 @@ pub fn get_peers(
         group_name,
     } = channel_and_group.into_inner();
 
-    let peers = state.peers(user_id, group_name, channel_name);
+    let peers = state
+        .peers(user_id, group_name, channel_name)
+        .unwrap_or_else(Vec::new);
     ok!(Ok::Peers(peers))
 }
 
@@ -1137,7 +1276,9 @@ pub fn get_signals(
         group_name,
     } = channel_and_group.into_inner();
 
-    let signals = state.take_signals(user_id, group_name, channel_name);
+    let signals = state
+        .take_signals(user_id, group_name, channel_name)
+        .unwrap_or_else(Vec::new);
     ok!(Ok::Signals(signals))
 }
 
@@ -1156,4 +1297,35 @@ pub fn leave_voice(
 
     state.remove_user(user_id, group_name, channel_name);
     ok!()
+}
+
+#[post("/get_users_in_voice", data = "<channel_and_group>")]
+pub fn get_users_in_voice(
+    channel_and_group: Json<ChannelAndGroup>,
+    database: Database,
+    state: rocket::State<State>,
+) -> Response {
+    let ChannelAndGroup {
+        channel_name,
+        group_name,
+    } = channel_and_group.into_inner();
+
+    let users = state
+        .users_in_voice(group_name, channel_name)
+        .unwrap_or_else(Vec::new);
+
+    let mut usernames = vec![];
+
+    for user_id in users {
+        let username: String = query_row!(
+            database,
+            "SELECT username FROM users WHERE ROWID=?1",
+            &user_id
+        )
+        .unwrap();
+
+        usernames.push(username);
+    }
+
+    ok!(Ok::Usernames(usernames))
 }

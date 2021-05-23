@@ -34,6 +34,7 @@ pub enum Ok {
     Groups(Vec<String>),
     Channels(Vec<String>),
     Messages(Vec<Message>),
+    Conditional(bool),
     Peers(Vec<i64>),
     Signals(Vec<Signal>),
 }
@@ -69,6 +70,7 @@ impl<'r> Responder<'r> for Response {
                 Ok::Groups(groups) => Json(groups).respond_to(request),
                 Ok::Channels(channels) => Json(channels).respond_to(request),
                 Ok::Messages(messages) => Json(messages).respond_to(request),
+                Ok::Conditional(condition) => Json(condition).respond_to(request),
                 Ok::Peers(peers) => Json(peers).respond_to(request),
                 Ok::Signals(signals) => Json(signals).respond_to(request),
                 _ => Json(ok).respond_to(request),

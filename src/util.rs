@@ -117,9 +117,11 @@ pub fn init_database_file(path: &Path) {
             CREATE TABLE IF NOT EXISTS friendships (
                 user1_id INTEGER NOT NULL,
                 user2_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL,
                 PRIMARY KEY (user1_id, user2_id),
                 FOREIGN KEY (user1_id) REFERENCES users (ROWID) ON DELETE CASCADE,
-                FOREIGN KEY (user2_id) REFERENCES users (ROWID) ON DELETE CASCADE
+                FOREIGN KEY (user2_id) REFERENCES users (ROWID) ON DELETE CASCADE,
+                FOREIGN KEY (channel_id) REFERENCES channels (ROWID) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS friend_requests (
@@ -177,11 +179,14 @@ pub fn init_rocket(rocket: rocket::Rocket) -> rocket::Rocket {
                 process_friend_request,
                 delete_friendship,
                 get_friends_for_user,
+                send_friend_message,
+                get_friend_messages,
                 join_voice,
                 get_peers,
                 signal,
                 get_signals,
                 leave_voice,
+                get_users_in_voice,
             ],
         )
         .manage(State::new())

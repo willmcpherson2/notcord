@@ -7,7 +7,8 @@
     clippy::option_if_let_else,
     clippy::option_if_let_else,
     clippy::wildcard_imports,
-    clippy::match_wildcard_for_single_variants
+    clippy::match_wildcard_for_single_variants,
+    clippy::similar_names
 )]
 
 use std::path::Path;

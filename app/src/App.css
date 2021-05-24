@@ -434,7 +434,7 @@ div Sidebar {
   padding-top: 15px;
   margin-bottom: 15px;
   width: calc(100% + 15px);
-  box-shadow: 0 2px #0000006b;
+  box-shadow: 0 2px #7a7a7a6b;
 }
 
 .info {

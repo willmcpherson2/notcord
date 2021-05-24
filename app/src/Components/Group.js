@@ -4,10 +4,19 @@ import { GearIcon, PlusIcon } from '@primer/octicons-react';
 import Peer from 'simple-peer';
 import '../App.css'
 
+//Sounds
+import useSound from 'use-sound';
+import join from '../Sounds/join.mp3'
+import leave from '../Sounds/leave.mp3'
+
+
 let reRender = null;
 let peerUpdate = null;
 let currentUser = null;
 let isAdmin = false;
+
+// TODO: Convert to React-Hooks
+
 export default class Group extends Component {
   constructor(props) {
     super(props);

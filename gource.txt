@@ -467,6 +467,7 @@
 1619407459|Josh Thiele|D|/app/src/Components/Settings/Settings.js
 1619407459|Josh Thiele|D|/app/src/Components/Sidebar/Sidebar.js
 1619407459|Josh Thiele|D|/app/src/Components/Signup/Signup.js
+1619408637|Jonathan|A|/app/src/Components/Login/Login.test.js
 1619418840|Kaidin Jackson|A|/app/src/Components/Signup.test.js
 1619418919|Kaidin Jackson|M|/app/src/Components/Signup.js
 1619419715|Kaidin Jackson|M|/app/src/Components/Signup.js
@@ -599,6 +600,8 @@
 1620868223|Josh Thiele|M|/app/src/Components/Group.js
 1620868223|Josh Thiele|M|/app/src/Components/Sidebar.js
 1620869310|Josh Thiele|M|/app/src/Components/Group.js
+1620872615|Jonathan|A|/app/src/Components/Tests/Group.test.js
+1620872615|Jonathan|A|/app/src/Components/Tests/Login.test.js
 1620873315|Timothy Stokoe|M|/src/routes.rs
 1620873315|Timothy Stokoe|M|/src/util.rs
 1620874021|Timothy Stokoe|M|/src/test.rs
@@ -607,3 +610,11 @@
 1620877277|Josh Thiele|M|/app/src/App.css
 1620877277|Josh Thiele|M|/app/src/Components/Group.js
 1620877277|Josh Thiele|M|/app/src/Components/Settings.js
+1620879768|Josh Thiele|M|/app/src/Components/Group.js
+1620879768|Josh Thiele|M|/gource.txt
+1620887190|Josh Thiele|M|/app/src/App.css
+1620887190|Josh Thiele|M|/app/src/Components/Group.js
+1620887190|Josh Thiele|M|/app/src/Components/Sidebar.js
+1620887559|Josh Thiele|M|/app/src/App.css
+1620887559|Josh Thiele|M|/app/src/Components/Group.js
+1621167391|Josh Thiele|M|/app/src/Components/Group.js

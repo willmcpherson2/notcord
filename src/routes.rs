@@ -447,13 +447,13 @@ pub fn is_group_admin(
     )
     .map_err(|_| Err::GroupDoesNotExist)?;
 
-    let user_in_group = exists!(
+    let self_in_group = exists!(
         database,
         "SELECT * FROM group_members WHERE user_id=?1 AND group_id=?2",
         &self_id,
         &group_id
     );
-    if !user_in_group {
+    if !self_in_group {
         return err!(Err::PermissionDenied);
     }
 

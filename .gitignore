@@ -3,6 +3,7 @@
 
 !.gitignore
 !readme.txt
+!data.txt
 !Cargo.toml
 !Cargo.lock
 !Rocket.toml

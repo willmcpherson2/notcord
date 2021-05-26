@@ -1,101 +1,66 @@
-# NotCord
+Product URL
+-----------
 
-Not Discord
+    https://not-cord.herokuapp.com
 
-## Project Structure
+Github URLs
+----------
 
-The top-level directory is the Rust project (server).
+    https://github.com/willmcpherson2/notcord
+    https://github.com/willmcpherson2/notcord-buildpack
 
-The app/ directory is the React project (frontend).
+Building
+--------
 
-## Building
+Install yarn, rustup and sqlite3:
 
-To build this you'll need to install yarn, rustup and sqlite3:
+    https://classic.yarnpkg.com/en/docs/install
+    https://rustup.rs
+    https://sqlite.org/download.html
 
-https://classic.yarnpkg.com/en/docs/install
+Run the backend:
 
-https://rustup.rs
+    cargo run
 
-https://sqlite.org/download.html
-
-Then you can build and run everything:
+Run the frontend:
 
     cd app
     yarn
-    yarn build
-    cd ..
-    cargo run
+    yarn start
 
-This will serve the app locally and you should be able to follow the link that
-Rocket printed to your terminal. It will probably be something like
-localhost:8000
+Then visit http://localhost:3000 in your browser.
 
-## Testing-Backend
-     
-Run the tests:
+Testing
+-------
 
-     cargo test
+Test the backend:
 
-To run a individual test:
+    cargo test
 
-    cargo test [test_name]
+Test the frontend:
 
-## Database
+    cd app
+    yarn test
 
-The server creates a database file called `database.db`, or uses the existing
-one. This means the database is persistent and you can create your own. You can
-create data manually with the `sqlite3` command:
+Deploying
+---------
 
-    sqlite3 database.db
+Deploying requires git and access to the Heroku account.
 
-A sqlite interpreter will open and you can execute any command you'd like.
+Once you have access, add the Heroku remote repository:
 
-For nicer output, add this to your `~/.sqliterc`:
+    git remote add heroku https://git.heroku.com/not-cord.git
 
-    .mode column
-    .headers on
+To deploy the app, push to the Heroku main branch:
 
-## .gitignore
+    git push heroku main
 
-A .gitignore is a file that git looks at to know which files to track.
+If the local and remote branches are identical, this has no effect.
 
-https://git-scm.com/docs/gitignore
+The build script that is used to install dependencies can be found here:
 
-Our .gitignore (the one in this directory) is super strict and will require you
-to manually add files.
+    https://github.com/willmcpherson2/notcord-buildpack/blob/master/bin/compile
 
-You'll see these two lines at the top of our .gitignore:
+The exact command used to run the server can be found here:
 
-    *
-    */*
-
-`*` ignores everything in the root directory. `*/*` ignores everything
-in every subdirectory. This also works for subdirectories with their own
-.gitignores, such as our app/ directory.
-
-Whitelist a file in the root directory:
-
-    !file
-
-Whitelist a file in a subdirectory:
-
-    !dir
-    !dir/file
-
-Whitelist everything in a directory:
-
-    !dir
-    !dir/*
-
-Recursively whitelist a directory:
-
-    !dir
-    !dir/**
-
-You'll notice we've allowed the entire app/ directory:
-
-    !app
-    !app/**
-
-This means we're using the .gitignore in the app directory *for that
-directory*.
+    https://github.com/willmcpherson2/notcord/blob/main/Procfile

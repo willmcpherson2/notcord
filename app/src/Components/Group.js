@@ -5,7 +5,6 @@ import Peer from 'simple-peer';
 import '../App.css'
 
 //Sounds
-import useSound from 'use-sound';
 import join from '../Sounds/join.mp3'
 import leave from '../Sounds/leave.mp3'
 
@@ -163,20 +162,24 @@ export default class Group extends Component {
   }
 
   async renderMessages(channel) {
-    const data = await fetch(process.env.REACT_APP_API_URL + '/get_messages', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        channel_name: channel,
-        group_name: this.props.groupName
+    try {
+      const data = await fetch(process.env.REACT_APP_API_URL + '/get_messages', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          channel_name: channel,
+          group_name: this.props.groupName
+        })
       })
-    })
-    const messages = await data.json()
-    this.setState({ messages: messages })
+      const messages = await data.json()
+      this.setState({ messages: messages })
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   renderItems() {
@@ -191,7 +194,7 @@ export default class Group extends Component {
           let currentDate = new Date();
           if (currentDate.getDate() === time.getDate()) {
             date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
-          } else if (currentDate.getDate() === time.getDate()+1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
+          } else if (currentDate.getDate() === time.getDate() + 1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
             date = "Yesterday at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
           }
           return (
@@ -200,7 +203,7 @@ export default class Group extends Component {
               <p className={this.currentUser === val.username ? "messageTitle currentUser" : "messageTitle"}>{val.username}<span>{date}</span></p>
               <p className="messageContent">{val.message}</p>
             </div>
-            
+
           )
         })
       )
@@ -441,6 +444,8 @@ export default class Group extends Component {
   }
 
   joinVoice = async () => {
+    const audioEl = document.getElementsByClassName("audio-element")[0]
+    audioEl.play()
     this.setState({
       inVoiceChat: true,
       voiceStream: await navigator.mediaDevices.getUserMedia({
@@ -553,6 +558,8 @@ export default class Group extends Component {
   }
 
   leaveVoice = async () => {
+    const audioEl = document.getElementsByClassName("audio-element-leave")[0]
+    audioEl.play()
     clearInterval(peerUpdate);
 
     Object.values(this.state.voicePeers).forEach(peer => peer.destroy());
@@ -582,6 +589,12 @@ export default class Group extends Component {
   render() {
     return (
       <div className="group">
+        <audio className="audio-element">
+          <source src={join}></source>
+        </audio>
+        <audio className="audio-element-leave">
+          <source src={leave}></source>
+        </audio>
         {/**NAVIGATION BAR */}
 
         {/**Change Channel Settings */}

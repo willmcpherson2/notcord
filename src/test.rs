@@ -1398,16 +1398,6 @@ fn add_channel_to_group_permission_denied() {
         .body("\"test_group01\"")
         .dispatch();
     client
-        .post("/invite_user_to_group")
-        .header(ContentType::JSON)
-        .body(
-            "{
-                    \"username\":\"test_user02\",
-                    \"group_name\":\"test_group01\"
-                }",
-        )
-        .dispatch();
-    client
         .post("/login")
         .header(ContentType::JSON)
         .body(
@@ -1417,10 +1407,6 @@ fn add_channel_to_group_permission_denied() {
         }",
         )
         .dispatch();
-    client
-        .post("/accept_invite")
-        .header(ContentType::JSON)
-        .body("\"test_group01\"");
 
     let message = client
         .post("/add_channel_to_group")

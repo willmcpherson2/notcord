@@ -206,6 +206,139 @@ fn get_username_not_logged_in() {
 }
 
 #[test]
+fn is_group_admin_true(){
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+    
+    let message = client
+        .post("/is_group_admin")
+        .header(ContentType::JSON)
+        .body("{
+                \"username\":\"test_user01\",
+                \"group_name\":\"test_group01\"
+            }");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(String::from("true"))
+    );
+}
+
+#[test]
+fn is_group_admin_false(){
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+     client
+        .post("/invite_user_to_group")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                    \"username\":\"test_user02\",
+                    \"group_name\":\"test_group01\"
+                }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/process_group_invite")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+                }",
+        )
+        .dispatch();
+
+    
+    let message = client
+        .post("/is_group_admin")
+        .header(ContentType::JSON)
+        .body("{
+                \"username\":\"test_user02\",
+                \"group_name\":\"test_group01\"
+            }");
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(String::from("false"))
+    );
+}
+
+#[test]
 fn add_group_success() {
     let (client, _) = setup!();
 

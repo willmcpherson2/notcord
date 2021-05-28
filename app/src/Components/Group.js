@@ -4,10 +4,18 @@ import { GearIcon, PlusIcon } from '@primer/octicons-react';
 import Peer from 'simple-peer';
 import '../App.css'
 
+//Sounds
+import join from '../Sounds/join.mp3'
+import leave from '../Sounds/leave.mp3'
+
+
 let reRender = null;
 let peerUpdate = null;
 let currentUser = null;
 let isAdmin = false;
+
+// TODO: Convert to React-Hooks
+
 export default class Group extends Component {
   constructor(props) {
     super(props);
@@ -32,7 +40,8 @@ export default class Group extends Component {
       voiceStream: null,
       voicePeers: {},
       audioPlayers: [],
-      currentVoiceChannel: ''
+      currentVoiceChannel: '',
+      userAvatars: []
     }
   }
 
@@ -46,11 +55,11 @@ export default class Group extends Component {
       credentials: 'include'
     })
     const user = await data.json()
-    console.log(user)
     return user
   }
 
   async isGroupAdmin() {
+    const username = await this.getUsername();
     const data = await fetch(process.env.REACT_APP_API_URL + '/is_group_admin', {
       method: 'POST',
       headers: {
@@ -58,7 +67,10 @@ export default class Group extends Component {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify(this.props.groupName)
+      body: JSON.stringify({
+        username: username,
+        group_name: this.props.groupName
+      })
     })
     const user = await data.json()
     if (user === "Ok") {
@@ -103,6 +115,7 @@ export default class Group extends Component {
     this.scrollToBottom();
     this.currentUser = await this.getUsername();
     this.isAdmin = await this.isGroupAdmin();
+    this.getUserAvatars();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -118,6 +131,8 @@ export default class Group extends Component {
     if (this.state.messages.length !== prevState.messages.length) {
       this.scrollToBottom();
     }
+
+    this.getUserAvatars();
   }
 
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
@@ -154,20 +169,24 @@ export default class Group extends Component {
   }
 
   async renderMessages(channel) {
-    const data = await fetch(process.env.REACT_APP_API_URL + '/get_messages', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        channel_name: channel,
-        group_name: this.props.groupName
+    try {
+      const data = await fetch(process.env.REACT_APP_API_URL + '/get_messages', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          channel_name: channel,
+          group_name: this.props.groupName
+        })
       })
-    })
-    const messages = await data.json()
-    this.setState({ messages: messages })
+      const messages = await data.json()
+      this.setState({ messages: messages })
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   renderItems() {
@@ -182,7 +201,7 @@ export default class Group extends Component {
           let currentDate = new Date();
           if (currentDate.getDate() === time.getDate()) {
             date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
-          } else if (currentDate.getDate() === time.getDate()+1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
+          } else if (currentDate.getDate() === time.getDate() + 1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
             date = "Yesterday at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
           }
           return (
@@ -191,7 +210,7 @@ export default class Group extends Component {
               <p className={this.currentUser === val.username ? "messageTitle currentUser" : "messageTitle"}>{val.username}<span>{date}</span></p>
               <p className="messageContent">{val.message}</p>
             </div>
-            
+
           )
         })
       )
@@ -432,6 +451,9 @@ export default class Group extends Component {
   }
 
   joinVoice = async () => {
+    const audioEl = document.getElementsByClassName("audio-element")[0]
+    audioEl.play()
+    this.getUserAvatars();
     this.setState({
       inVoiceChat: true,
       voiceStream: await navigator.mediaDevices.getUserMedia({
@@ -544,6 +566,8 @@ export default class Group extends Component {
   }
 
   leaveVoice = async () => {
+    const audioEl = document.getElementsByClassName("audio-element-leave")[0]
+    audioEl.play()
     clearInterval(peerUpdate);
 
     Object.values(this.state.voicePeers).forEach(peer => peer.destroy());
@@ -554,6 +578,9 @@ export default class Group extends Component {
       voicePeers: {},
       audioPlayers: [],
     });
+
+    const index = this.currentUser;
+    delete this.state.userAvatars[index];
 
     await fetch(process.env.REACT_APP_API_URL + '/leave_voice', {
       method: 'POST',
@@ -568,152 +595,202 @@ export default class Group extends Component {
     });
   }
 
+  //This gets the users avatars if they are in the voice chat. 
+  async getUserAvatars() {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_users_in_voice', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel_name: this.state.currentChannel,
+        group_name: this.props.groupName,
+      }),
+    });
+    const usersInVoice = await data.json();
+    let data2 = null;
+    for (let index = 0; index < usersInVoice.length; index++) {
+      data2 = await fetch(process.env.REACT_APP_API_URL + '/get_avatar', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(usersInVoice[index])
+      });
+      const image = await data2.blob()
+      const urlCreator = window.URL || window.webkitURL;
+      const url = urlCreator.createObjectURL(image);
+      this.state.userAvatars[index] = url;
+      
+    }
+}
 
-
-  render() {
+renderUserAvatars() {
+  return (
+    Object.entries(this.state.userAvatars).map(([key, value]) => {
     return (
-      <div className="group">
-        {/**NAVIGATION BAR */}
+      <div key={key}><img id="avatar" width="32" height="32" alt="Avatar" src={value}></img>
+      </div>
+    )
+  })
+  )
+  
+}
 
-        {/**Change Channel Settings */}
-        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false, showAlert: false }) }}>
-          <Modal.Header closeButton>
-            <Modal.Title>Channel Settings</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
 
-            <Form>
-              <Form.Group>
-                <Form.Label>Allow:</Form.Label>
-                {this.renderUsersPermission()}
-              </Form.Group>
-              <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={() => this.setState({ deleteChannelShow: true })}>Delete Channel</Button>
-            </Form>
+render() {
+  return (
+    <div className="group">
+      <audio className="audio-element">
+        <source src={join}></source>
+      </audio>
+      <audio className="audio-element-leave">
+        <source src={leave}></source>
+      </audio>
+      {/**NAVIGATION BAR */}
 
-          </Modal.Body>
-        </Modal>
+      {/**Change Channel Settings */}
+      <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false, showAlert: false }) }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Channel Settings</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
 
-        {/**Create New Channel */}
-        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
-          <Modal.Header closeButton>
-            <Modal.Title>Create New Channel</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Allow:</Form.Label>
+              {this.renderUsersPermission()}
+            </Form.Group>
+            <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={() => this.setState({ deleteChannelShow: true })}>Delete Channel</Button>
+          </Form>
 
-            <Form>
-              <Form.Group>
-                <Form.Label>Channel Name</Form.Label>
-                <Form.Control type="text" onChange={this.handleNameChange} />
-              </Form.Group>
-              <Button onClick={this.createChannel}>Create Channel</Button>
-            </Form>
+        </Modal.Body>
+      </Modal>
 
-          </Modal.Body>
-        </Modal>
+      {/**Create New Channel */}
+      <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Create New Channel</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
 
-        {/**Invite people to group */}
-        <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
-          <Modal.Header closeButton>
-            <Modal.Title>Invite People</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+          <Form>
+            <Form.Group>
+              <Form.Label>Channel Name</Form.Label>
+              <Form.Control type="text" onChange={this.handleNameChange} />
+            </Form.Group>
+            <Button onClick={this.createChannel}>Create Channel</Button>
+          </Form>
 
-            <Form>
-              <Form.Group>
-                <Form.Label>Invite by Username (Case Sensitive)</Form.Label>
-                <Form.Control type="text" onChange={this.handleInviteChange} />
-              </Form.Group>
-              <Button onClick={this.inviteUser}>Invite User</Button>
-            </Form>
+        </Modal.Body>
+      </Modal>
 
-          </Modal.Body>
-        </Modal>
+      {/**Invite people to group */}
+      <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Invite People</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
-        {/**Delete Channel Confirm */}
-        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false, showAlert: false }) }}>
-          <Modal.Header closeButton>
-            <Modal.Title>Delete Channel</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+          <Form>
+            <Form.Group>
+              <Form.Label>Invite by Username (Case Sensitive)</Form.Label>
+              <Form.Control type="text" onChange={this.handleInviteChange} />
+            </Form.Group>
+            <Button onClick={this.inviteUser}>Invite User</Button>
+          </Form>
+
+        </Modal.Body>
+      </Modal>
+
+      {/**Delete Channel Confirm */}
+      <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false, showAlert: false }) }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Channel</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             Are you sure you want to delete this channel? This action is unreversable.
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
-          </Modal.Footer>
-        </Modal>
+        <Modal.Footer>
+          <Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
+        </Modal.Footer>
+      </Modal>
 
-        {/**Leave Group Confirm */}
-        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false, showAlert: false }) }}>
-          <Modal.Header closeButton>
-            <Modal.Title>Leave Group</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            Are you sure you want to leave this group? This action is unreversable. You will need to be invited again to rejoin.
+      {/**Leave Group Confirm */}
+      <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false, showAlert: false }) }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Leave Group</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to leave this group? This action is unreversable. You will need to be invited again to rejoin.
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant="danger" onClick={this.leaveGroup}>Leave Group</Button>
-          </Modal.Footer>
-        </Modal>
+        <Modal.Footer>
+          <Button variant="danger" onClick={this.leaveGroup}>Leave Group</Button>
+        </Modal.Footer>
+      </Modal>
 
-        <div className="navigation">
-          <div className="heading">
-            <OverlayTrigger
-              placement='bottom'
-              delay={{ show: 1000, hide: 0 }}
-              overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
-              <h3 className="groupName">{this.props.groupName}</h3>
-            </OverlayTrigger>
+      <div className="navigation">
+        <div className="heading">
+          <OverlayTrigger
+            placement='bottom'
+            delay={{ show: 1000, hide: 0 }}
+            overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
+            <h3 className="groupName">{this.props.groupName}</h3>
+          </OverlayTrigger>
 
-            <OverlayTrigger
-              placement='right'
-              delay={{ show: 500, hide: 0 }}
-              overlay={<Tooltip>Invite User to Group</Tooltip>}>
-              <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
-            </OverlayTrigger>
-
-          </div>
-
-
-
-          {this.renderChannels()}
-          <div className="extras">
-            <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
-            <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
-          </div>
+          <OverlayTrigger
+            placement='right'
+            delay={{ show: 500, hide: 0 }}
+            overlay={<Tooltip>Invite User to Group</Tooltip>}>
+            <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
+          </OverlayTrigger>
 
         </div>
 
-        <div className="messageArea">
-          <div className="infoBox">
-            <div className="info"><p>{this.state.currentChannel}</p></div>
-            <div className="callButton">
-              <Button variant="success" className={this.state.inVoiceChat ? "noDisplay" : ""} onClick={this.joinVoice}>Join Voice Call</Button>
-              <Button variant="danger" className={this.state.inVoiceChat ? "" : "noDisplay"} onClick={this.leaveVoice}>Leave Call</Button>
-            </div>
 
 
-          </div>
-          <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
-          <div className="messageBox">
-            <Form onSubmit={this.sendMessage}>
-              <Form.Row>
-                <Col>
-                  <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-                </Col>
-                <Col md="auto">
-                  <Button varient="primary" type="submit">Send Message</Button>
-                </Col>
-              </Form.Row>
-
-            </Form>
-          </div>
-
-
+        {this.renderChannels()}
+        <div className="extras">
+          <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
+          <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
         </div>
 
       </div>
-    );
-  }
+
+      <div className="messageArea">
+        <div className="infoBox">
+          <div className="info"><p>{this.state.currentChannel}</p></div>
+          <div>{this.renderUserAvatars()}</div>
+          <div className="callButton">
+            <Button variant="success" className={this.state.inVoiceChat ? "noDisplay" : ""} onClick={this.joinVoice}>Join Voice Call</Button>
+            <Button variant="danger" className={this.state.inVoiceChat ? "" : "noDisplay"} onClick={this.leaveVoice}>Leave Call</Button>
+          </div>
+
+
+        </div>
+        <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
+        <div className="messageBox">
+          <Form onSubmit={this.sendMessage}>
+            <Form.Row>
+              <Col>
+                <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+              </Col>
+              <Col md="auto">
+                <Button varient="primary" type="submit">Send Message</Button>
+              </Col>
+            </Form.Row>
+
+          </Form>
+        </div>
+
+
+      </div>
+
+    </div>
+  );
+}
 }

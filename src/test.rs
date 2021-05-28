@@ -206,7 +206,7 @@ fn get_username_not_logged_in() {
 }
 
 #[test]
-fn is_group_admin_true(){
+fn is_group_admin_true() {
     let (client, _) = setup!();
 
     client
@@ -234,25 +234,24 @@ fn is_group_admin_true(){
         .header(ContentType::JSON)
         .body("\"test_group01\"")
         .dispatch();
-    
+
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user01\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
-    assert_eq!(
-        response.body_string(),
-        Some(String::from("true"))
-    );
+    assert_eq!(response.body_string(), Some(String::from("true")));
 }
 
 #[test]
-fn is_group_admin_false(){
+fn is_group_admin_false() {
     let (client, _) = setup!();
 
     client
@@ -290,7 +289,7 @@ fn is_group_admin_false(){
         .header(ContentType::JSON)
         .body("\"test_group01\"")
         .dispatch();
-     client
+    client
         .post("/invite_user_to_group")
         .header(ContentType::JSON)
         .body(
@@ -321,34 +320,34 @@ fn is_group_admin_false(){
         )
         .dispatch();
 
-    
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user02\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
-    assert_eq!(
-        response.body_string(),
-        Some(String::from("false"))
-    );
+    assert_eq!(response.body_string(), Some(String::from("false")));
 }
 
 #[test]
-fn is_group_admin_not_logged_in(){
+fn is_group_admin_not_logged_in() {
     let (client, _) = setup!();
-   
+
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user01\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -359,7 +358,7 @@ fn is_group_admin_not_logged_in(){
 }
 
 #[test]
-fn is_group_admin_user_doesnt_exist(){
+fn is_group_admin_user_doesnt_exist() {
     let (client, _) = setup!();
 
     client
@@ -387,14 +386,16 @@ fn is_group_admin_user_doesnt_exist(){
         .header(ContentType::JSON)
         .body("\"test_group01\"")
         .dispatch();
-    
+
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user02\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -405,7 +406,7 @@ fn is_group_admin_user_doesnt_exist(){
 }
 
 #[test]
-fn is_group_admin_group_doesnt_exist(){
+fn is_group_admin_group_doesnt_exist() {
     let (client, _) = setup!();
 
     client
@@ -438,14 +439,16 @@ fn is_group_admin_group_doesnt_exist(){
         }",
         )
         .dispatch();
-    
+
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user02\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -456,7 +459,7 @@ fn is_group_admin_group_doesnt_exist(){
 }
 
 #[test]
-fn is_group_admin_user_not_in_group(){
+fn is_group_admin_user_not_in_group() {
     let (client, _) = setup!();
 
     client
@@ -494,14 +497,16 @@ fn is_group_admin_user_not_in_group(){
         .header(ContentType::JSON)
         .body("\"test_group01\"")
         .dispatch();
-    
+
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user02\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 
@@ -512,7 +517,7 @@ fn is_group_admin_user_not_in_group(){
 }
 
 #[test]
-fn is_group_admin_permission_denied(){
+fn is_group_admin_permission_denied() {
     let (client, _) = setup!();
 
     client
@@ -560,14 +565,16 @@ fn is_group_admin_permission_denied(){
         }",
         )
         .dispatch();
-    
+
     let message = client
         .post("/is_group_admin")
         .header(ContentType::JSON)
-        .body("{
+        .body(
+            "{
                 \"username\":\"test_user01\",
                 \"group_name\":\"test_group01\"
-            }");
+            }",
+        );
 
     let mut response = message.dispatch();
 

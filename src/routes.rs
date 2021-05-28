@@ -475,8 +475,7 @@ pub fn is_group_admin(
 
     if !is_admin {
         ok!(Ok::Conditional(false))
-    }
-    else {
+    } else {
         ok!(Ok::Conditional(true))
     }
 }

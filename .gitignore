@@ -2,7 +2,8 @@
 */*
 
 !.gitignore
-!README.md
+!readme.txt
+!data.txt
 !Cargo.toml
 !Cargo.lock
 !Rocket.toml

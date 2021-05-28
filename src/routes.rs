@@ -1,5 +1,5 @@
 use crate::response::*;
-use crate::state::{Signal, State, User};
+use crate::state::{ChannelId, Signal, State, User};
 use crate::util;
 use crate::util::*;
 use rocket::http::{ContentType, Cookie, Cookies};
@@ -1215,7 +1215,8 @@ pub fn join_voice(
         group_name,
     } = channel_and_group.into_inner();
 
-    state.add_user(user_id, group_name, channel_name);
+    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
+    state.add_user(user_id, channel_id);
     ok!()
 }
 
@@ -1232,9 +1233,8 @@ pub fn get_peers(
         group_name,
     } = channel_and_group.into_inner();
 
-    let peers = state
-        .peers(user_id, group_name, channel_name)
-        .unwrap_or_else(Vec::new);
+    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
+    let peers = state.peers(user_id, channel_id).unwrap_or_else(Vec::new);
     ok!(Ok::Peers(peers))
 }
 
@@ -1259,7 +1259,9 @@ pub fn signal(
         peer: user_id,
         signal,
     };
-    state.add_signal(user, group, channel, signal);
+
+    let channel_id = ChannelId::GroupAndChannel(group, channel);
+    state.add_signal(user, channel_id, signal);
 
     ok!()
 }
@@ -1277,8 +1279,9 @@ pub fn get_signals(
         group_name,
     } = channel_and_group.into_inner();
 
+    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
     let signals = state
-        .take_signals(user_id, group_name, channel_name)
+        .take_signals(user_id, channel_id)
         .unwrap_or_else(Vec::new);
     ok!(Ok::Signals(signals))
 }
@@ -1296,7 +1299,8 @@ pub fn leave_voice(
         group_name,
     } = channel_and_group.into_inner();
 
-    state.remove_user(user_id, group_name, channel_name);
+    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
+    state.remove_user(user_id, channel_id);
     ok!()
 }
 
@@ -1311,9 +1315,8 @@ pub fn get_users_in_voice(
         group_name,
     } = channel_and_group.into_inner();
 
-    let users = state
-        .users_in_voice(group_name, channel_name)
-        .unwrap_or_else(Vec::new);
+    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
+    let users = state.users_in_voice(channel_id).unwrap_or_else(Vec::new);
 
     let mut usernames = vec![];
 

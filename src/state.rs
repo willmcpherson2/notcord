@@ -2,11 +2,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-pub struct State(Mutex<Groups>);
+pub struct State(Mutex<Chats>);
 
-type Groups = HashMap<String, Group>;
+type Chats = HashMap<ChannelId, Channel>;
 
-type Group = HashMap<String, Channel>;
+#[derive(PartialEq, Eq, Hash, Clone)]
+pub enum ChannelId {
+    Friends(User, User),
+    GroupAndChannel(String, String),
+}
 
 type Channel = HashMap<User, Signals>;
 
@@ -25,78 +29,59 @@ impl State {
         Self(Mutex::new(HashMap::new()))
     }
 
-    pub fn add_user(&self, user: User, group: String, channel: String) {
-        let mut groups = self.0.lock().unwrap();
-        let group = if let Some(group) = groups.get_mut(&group) {
-            group
-        } else {
-            groups.insert(group.clone(), HashMap::new());
-            groups.get_mut(&group).unwrap()
-        };
-        let channel = if let Some(channel) = group.get_mut(&channel) {
+    pub fn add_user(&self, user: User, channel_id: ChannelId) {
+        let chats = &mut self.0.lock().unwrap();
+
+        let channel = if let Some(channel) = chats.get_mut(&channel_id) {
             channel
         } else {
-            group.insert(channel.clone(), HashMap::new());
-            group.get_mut(&channel).unwrap()
+            chats.insert(channel_id.clone(), HashMap::new());
+            chats.get_mut(&channel_id).unwrap()
         };
+
         channel.insert(user, Vec::new());
     }
 
-    pub fn peers(&self, user: User, group: String, channel: String) -> Option<Vec<User>> {
-        let groups = self.0.lock().unwrap();
-        let group = groups.get(&group)?;
-        let channel = group.get(&channel)?;
+    pub fn peers(&self, user: User, channel_id: ChannelId) -> Option<Vec<User>> {
+        let chats = self.0.lock().unwrap();
+        let channel = chats.get(&channel_id)?;
         let peers = channel.keys().cloned().filter(|&id| id != user).collect();
         Some(peers)
     }
 
-    pub fn add_signal(
-        &self,
-        user: User,
-        group: String,
-        channel: String,
-        signal: Signal,
-    ) -> Option<()> {
-        let mut groups = self.0.lock().unwrap();
-        let group = groups.get_mut(&group)?;
-        let channel = group.get_mut(&channel)?;
+    pub fn add_signal(&self, user: User, channel_id: ChannelId, signal: Signal) -> Option<()> {
+        let mut chats = self.0.lock().unwrap();
+        let channel = chats.get_mut(&channel_id)?;
         let signals = channel.get_mut(&user)?;
         signals.push(signal);
         Some(())
     }
 
-    pub fn take_signals(&self, user: User, group: String, channel: String) -> Option<Vec<Signal>> {
-        let mut groups = self.0.lock().unwrap();
-        let group = groups.get_mut(&group)?;
-        let channel = group.get_mut(&channel)?;
+    pub fn take_signals(&self, user: User, channel_id: ChannelId) -> Option<Vec<Signal>> {
+        let mut chats = self.0.lock().unwrap();
+        let channel = chats.get_mut(&channel_id)?;
         let signals = channel.get_mut(&user)?;
         let new_signals = signals.clone();
         signals.clear();
         Some(new_signals)
     }
 
-    pub fn remove_user(&self, user: User, group_name: String, channel_name: String) -> Option<()> {
-        let mut groups = self.0.lock().unwrap();
-        let group = groups.get_mut(&group_name)?;
-        let channel = group.get_mut(&channel_name)?;
+    pub fn remove_user(&self, user: User, channel_id: ChannelId) -> Option<()> {
+        let mut chats = self.0.lock().unwrap();
+        let channel = chats.get_mut(&channel_id)?;
 
         channel.remove(&user);
 
         if channel.is_empty() {
-            group.remove(&channel_name);
-
-            if group.is_empty() {
-                groups.remove(&group_name);
-            }
+            chats.remove(&channel_id);
         }
 
         Some(())
     }
 
-    pub fn users_in_voice(&self, group: String, channel: String) -> Option<Vec<User>> {
-        let groups = self.0.lock().unwrap();
-        let group = groups.get(&group)?;
-        let channel = group.get(&channel)?;
+    pub fn users_in_voice(&self, channel_id: ChannelId) -> Option<Vec<User>> {
+        let chats = self.0.lock().unwrap();
+        let channel = chats.get(&channel_id)?;
         let users = channel.keys().cloned().collect();
         Some(users)
     }

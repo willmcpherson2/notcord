@@ -71,8 +71,7 @@ pub struct Message {
 pub struct SignalRequest {
     signal: String,
     peer: User,
-    channel_name: String,
-    group_name: String,
+    channel_id: ChannelId,
 }
 
 #[get("/")]
@@ -1202,39 +1201,27 @@ pub fn get_friend_messages(
     ok!(Ok::Messages(messages))
 }
 
-#[post("/join_voice", data = "<channel_and_group>")]
+#[post("/join_voice", data = "<channel_id>")]
 pub fn join_voice(
-    channel_and_group: Json<ChannelAndGroup>,
+    channel_id: Json<ChannelId>,
     mut cookies: Cookies,
     state: rocket::State<State>,
 ) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
-
-    let ChannelAndGroup {
-        channel_name,
-        group_name,
-    } = channel_and_group.into_inner();
-
-    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
-    state.add_user(user_id, channel_id);
+    state.add_user(user_id, channel_id.into_inner());
     ok!()
 }
 
-#[post("/get_peers", data = "<channel_and_group>")]
+#[post("/get_peers", data = "<channel_id>")]
 pub fn get_peers(
-    channel_and_group: Json<ChannelAndGroup>,
+    channel_id: Json<ChannelId>,
     mut cookies: Cookies,
     state: rocket::State<State>,
 ) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
-
-    let ChannelAndGroup {
-        channel_name,
-        group_name,
-    } = channel_and_group.into_inner();
-
-    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
-    let peers = state.peers(user_id, channel_id).unwrap_or_else(Vec::new);
+    let peers = state
+        .peers(user_id, channel_id.into_inner())
+        .unwrap_or_else(Vec::new);
     ok!(Ok::Peers(peers))
 }
 
@@ -1249,8 +1236,7 @@ pub fn signal(
     let SignalRequest {
         signal,
         peer,
-        channel_name: channel,
-        group_name: group,
+        channel_id,
     } = signal_request.into_inner();
 
     // Here, the signal "switches sides". The user becomes the peer and the peer becomes the user.
@@ -1260,63 +1246,44 @@ pub fn signal(
         signal,
     };
 
-    let channel_id = ChannelId::GroupAndChannel(group, channel);
     state.add_signal(user, channel_id, signal);
 
     ok!()
 }
 
-#[post("/get_signals", data = "<channel_and_group>")]
+#[post("/get_signals", data = "<channel_id>")]
 pub fn get_signals(
-    channel_and_group: Json<ChannelAndGroup>,
+    channel_id: Json<ChannelId>,
     mut cookies: Cookies,
     state: rocket::State<State>,
 ) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
-
-    let ChannelAndGroup {
-        channel_name,
-        group_name,
-    } = channel_and_group.into_inner();
-
-    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
     let signals = state
-        .take_signals(user_id, channel_id)
+        .take_signals(user_id, channel_id.into_inner())
         .unwrap_or_else(Vec::new);
     ok!(Ok::Signals(signals))
 }
 
-#[post("/leave_voice", data = "<channel_and_group>")]
+#[post("/leave_voice", data = "<channel_id>")]
 pub fn leave_voice(
-    channel_and_group: Json<ChannelAndGroup>,
+    channel_id: Json<ChannelId>,
     mut cookies: Cookies,
     state: rocket::State<State>,
 ) -> Response {
     let user_id = util::get_logged_in_user_id(&mut cookies)?;
-
-    let ChannelAndGroup {
-        channel_name,
-        group_name,
-    } = channel_and_group.into_inner();
-
-    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
-    state.remove_user(user_id, channel_id);
+    state.remove_user(user_id, channel_id.into_inner());
     ok!()
 }
 
-#[post("/get_users_in_voice", data = "<channel_and_group>")]
+#[post("/get_users_in_voice", data = "<channel_id>")]
 pub fn get_users_in_voice(
-    channel_and_group: Json<ChannelAndGroup>,
+    channel_id: Json<ChannelId>,
     database: Database,
     state: rocket::State<State>,
 ) -> Response {
-    let ChannelAndGroup {
-        channel_name,
-        group_name,
-    } = channel_and_group.into_inner();
-
-    let channel_id = ChannelId::GroupAndChannel(group_name, channel_name);
-    let users = state.users_in_voice(channel_id).unwrap_or_else(Vec::new);
+    let users = state
+        .users_in_voice(channel_id.into_inner())
+        .unwrap_or_else(Vec::new);
 
     let mut usernames = vec![];
 

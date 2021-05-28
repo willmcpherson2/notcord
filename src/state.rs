@@ -6,10 +6,17 @@ pub struct State(Mutex<Chats>);
 
 type Chats = HashMap<ChannelId, Channel>;
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Deserialize)]
+#[serde(untagged)]
 pub enum ChannelId {
-    Friends(User, User),
-    GroupAndChannel(String, String),
+    Friends {
+        user1: String,
+        user2: String,
+    },
+    GroupAndChannel {
+        channel_name: String,
+        group_name: String,
+    },
 }
 
 type Channel = HashMap<User, Signals>;

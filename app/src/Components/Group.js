@@ -548,8 +548,10 @@ export default class Group extends Component {
       body: JSON.stringify({
         signal: JSON.stringify(signal), // Send object as string because we want to treat it opaquely.
         peer: peerId,
-        channel_name: this.state.currentChannel,
-        group_name: this.props.groupName,
+        channel_id: {
+          channel_name: this.state.currentChannel,
+          group_name: this.props.groupName,
+        },
       }),
     });
   }

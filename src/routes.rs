@@ -993,6 +993,19 @@ pub fn add_friend_request(user: Json<&str>, mut cookies: Cookies, database: Data
     ok!()
 }
 
+#[post("/get_friend_requests")]
+pub fn get_friend_requests(mut cookies: Cookies, database: Database) -> Response {
+    let requestee_id = util::get_logged_in_user_id(&mut cookies)?;
+
+    let get_friend_requests = query_rows!(
+        database,
+        "SELECT users.username FROM users JOIN friend_requests ON users.ROWID = friend_requests.requester_id WHERE friend_requests.requestee_id=?1",
+        &requestee_id
+    );
+
+    ok!(Ok::Usernames(get_friend_requests))
+}
+
 #[post("/proccess_friend_request", data = "<process_friend_request>")]
 pub fn process_friend_request(
     process_friend_request: Json<ProcessFriendRequest>,

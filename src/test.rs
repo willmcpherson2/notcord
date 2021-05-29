@@ -5013,7 +5013,7 @@ fn add_friend_request_friendship_already_exists() {
         )
         .dispatch();
     client
-        .post("/proccess_friend_request")
+        .post("/process_friend_request")
         .header(ContentType::JSON)
         .body(
             "{
@@ -5166,7 +5166,7 @@ fn process_friend_request_accept() {
         .dispatch();
 
     let message = client
-        .post("/proccess_friend_request")
+        .post("/process_friend_request")
         .header(ContentType::JSON)
         .body(
             "{
@@ -5232,7 +5232,7 @@ fn process_friend_request_deny() {
         .dispatch();
 
     let message = client
-        .post("/proccess_friend_request")
+        .post("/process_friend_request")
         .header(ContentType::JSON)
         .body(
             "{
@@ -5254,7 +5254,7 @@ fn process_friend_not_logged_in() {
     let (client, _) = setup!();
 
     let message = client
-        .post("/proccess_friend_request")
+        .post("/process_friend_request")
         .header(ContentType::JSON)
         .body(
             "{
@@ -5296,7 +5296,7 @@ fn process_friend_user_doesnt_exist() {
         .dispatch();
 
     let message = client
-        .post("/proccess_friend_request")
+        .post("/process_friend_request")
         .header(ContentType::JSON)
         .body(
             "{
@@ -5347,7 +5347,7 @@ fn process_friend_invite_doesnt_exist() {
         .dispatch();
 
     let message = client
-        .post("/proccess_friend_request")
+        .post("/process_friend_request")
         .header(ContentType::JSON)
         .body(
             "{

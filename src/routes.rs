@@ -1007,7 +1007,7 @@ pub fn get_friend_requests(mut cookies: Cookies, database: Database) -> Response
     ok!(Ok::Usernames(get_friend_requests))
 }
 
-#[post("/proccess_friend_request", data = "<process_friend_request>")]
+#[post("/process_friend_request", data = "<process_friend_request>")]
 pub fn process_friend_request(
     process_friend_request: Json<ProcessFriendRequest>,
     mut cookies: Cookies,

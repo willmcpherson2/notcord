@@ -41,7 +41,6 @@ export default class Settings extends Component {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify("Group1")
     })
     const invites = await data.json()
     this.setState({ invites: invites })

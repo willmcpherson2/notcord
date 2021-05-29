@@ -473,11 +473,7 @@ pub fn is_group_admin(
         &group_id
     );
 
-    if !is_admin {
-        ok!(Ok::Conditional(false))
-    } else {
-        ok!(Ok::Conditional(true))
-    }
+    ok!(Ok::Conditional(is_admin))
 }
 
 #[post("/add_channel_to_group", data = "<channel_and_group>")]

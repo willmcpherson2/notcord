@@ -584,7 +584,7 @@ pub fn remove_channel_from_group(
 
     execute!(
         database,
-        "DELETE FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2",
+        "DELETE FROM channels WHERE ROWID IN (SELECT channel_id FROM channels INNER JOIN group_channels ON channels.ROWID = group_channels.channel_id WHERE name=?1 AND group_id=?2)",
         &channel_and_group.channel_name,
         &group_id
     );

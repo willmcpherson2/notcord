@@ -1471,7 +1471,7 @@ fn remove_user_from_group_success() {
 
 #[test]
 fn remove_user_from_group_not_logged_in() {
-    let (client, _) = setup!();   
+    let (client, _) = setup!();
 
     let message = client
         .post("/remove_user_from_group")
@@ -2359,7 +2359,7 @@ fn remove_channel_from_group_permission_denied() {
         }",
         )
         .dispatch();
-     client
+    client
         .post("/add_group")
         .header(ContentType::JSON)
         .body("\"test_group01\"")
@@ -3085,7 +3085,6 @@ fn remove_user_from_channel_success() {
         )
         .dispatch();
 
-
     let message = client
         .post("/remove_user_from_channel")
         .header(ContentType::JSON)
@@ -3531,7 +3530,7 @@ fn remove_user_from_channel_user_not_in_channel() {
 fn get_users_in_channel_success() {
     let (client, _) = setup!();
 
-     client
+    client
         .post("/signup")
         .header(ContentType::JSON)
         .body(
@@ -3640,7 +3639,7 @@ fn get_users_in_channel_success() {
 
     let mut response = message.dispatch();
 
-     assert_eq!(
+    assert_eq!(
         response.body_string().unwrap(),
         //this needs improvement
         "[\"test_user01\",\"test_user02\"]"
@@ -4178,15 +4177,14 @@ fn send_message_success() {
         )
         .dispatch();
 
-    let message = client
-        .post("/send_message")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/send_message").header(ContentType::JSON).body(
+        "
         {
             \"group_name\":\"test_group01\",
             \"channel_name\":\"test_channel01\",
             \"message\":\"test_message\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4200,15 +4198,14 @@ fn send_message_success() {
 fn send_message_not_logged_in() {
     let (client, _) = setup!();
 
-    let message = client
-        .post("/send_message")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/send_message").header(ContentType::JSON).body(
+        "
         {
             \"group_name\":\"test_group01\",
             \"channel_name\":\"test_channel01\",
             \"message\":\"test_message\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4243,15 +4240,14 @@ fn send_message_group_doesnt_exist() {
         )
         .dispatch();
 
-    let message = client
-        .post("/send_message")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/send_message").header(ContentType::JSON).body(
+        "
         {
             \"group_name\":\"test_group01\",
             \"channel_name\":\"test_channel01\",
             \"message\":\"test_message\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4291,15 +4287,14 @@ fn send_message_channel_doesnt_exist() {
         .body("\"test_group01\"")
         .dispatch();
 
-    let message = client
-        .post("/send_message")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/send_message").header(ContentType::JSON).body(
+        "
         {
             \"group_name\":\"test_group01\",
             \"channel_name\":\"test_channel01\",
             \"message\":\"test_message\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4368,16 +4363,15 @@ fn send_message_user_not_in_group() {
         }",
         )
         .dispatch();
-    
-    let message = client
-        .post("/send_message")
-        .header(ContentType::JSON)
-        .body("
+
+    let message = client.post("/send_message").header(ContentType::JSON).body(
+        "
         {
             \"group_name\":\"test_group01\",
             \"channel_name\":\"test_channel01\",
             \"message\":\"test_message\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4467,15 +4461,14 @@ fn send_message_user_not_in_channel() {
         )
         .dispatch();
 
-    let message = client
-        .post("/send_message")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/send_message").header(ContentType::JSON).body(
+        "
         {
             \"group_name\":\"test_group01\",
             \"channel_name\":\"test_channel01\",
             \"message\":\"test_message\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4489,14 +4482,13 @@ fn send_message_user_not_in_channel() {
 fn get_messages_not_logged_in() {
     let (client, _) = setup!();
 
-    let message = client
-        .post("/get_messages")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/get_messages").header(ContentType::JSON).body(
+        "
         {
             \"channel_name\":\"test_channel01\",
             \"group_name\":\"test_group01\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4531,14 +4523,13 @@ fn get_messages_group_doesnt_exist() {
         )
         .dispatch();
 
-    let message = client
-        .post("/get_messages")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/get_messages").header(ContentType::JSON).body(
+        "
         {
             \"channel_name\":\"test_channel01\",
             \"group_name\":\"test_group01\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4608,14 +4599,13 @@ fn get_messages_user_not_in_group() {
         )
         .dispatch();
 
-    let message = client
-        .post("/get_messages")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/get_messages").header(ContentType::JSON).body(
+        "
         {
             \"channel_name\":\"test_channel01\",
             \"group_name\":\"test_group01\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4655,14 +4645,13 @@ fn get_messages_channel_doesnt_exist() {
         .body("\"test_group01\"")
         .dispatch();
 
-    let message = client
-        .post("/get_messages")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/get_messages").header(ContentType::JSON).body(
+        "
         {
             \"channel_name\":\"test_channel01\",
             \"group_name\":\"test_group01\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -4752,14 +4741,13 @@ fn get_messages_user_not_in_channel() {
         )
         .dispatch();
 
-    let message = client
-        .post("/get_messages")
-        .header(ContentType::JSON)
-        .body("
+    let message = client.post("/get_messages").header(ContentType::JSON).body(
+        "
         {
             \"channel_name\":\"test_channel01\",
             \"group_name\":\"test_group01\"
-        }");
+        }",
+    );
 
     let mut response = message.dispatch();
 
@@ -5115,7 +5103,6 @@ fn get_friend_requests_not_logged_in() {
     );
 }
 
-
 #[test]
 fn process_friend_request_accept() {
     let (client, _) = setup!();
@@ -5242,7 +5229,7 @@ fn process_friend_request_deny() {
         );
 
     let mut response = message.dispatch();
-    
+
     assert_eq!(
         response.body_string(),
         Some(serde_json::to_string(&Ok::Ok).unwrap())

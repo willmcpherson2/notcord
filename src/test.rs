@@ -3528,6 +3528,415 @@ fn remove_user_from_channel_user_not_in_channel() {
 }
 
 #[test]
+fn get_users_in_channel_success() {
+    let (client, _) = setup!();
+
+     client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+    client
+        .post("/add_channel_to_group")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/invite_user_to_group")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                    \"username\":\"test_user02\",
+                    \"group_name\":\"test_group01\"
+                }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/process_group_invite")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+                }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_user_to_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"username\":\"test_user02\",
+                \"group_name\": \"test_group01\",
+                \"channel_name\": \"test_channel01\"
+            }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/get_users_in_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        );
+
+    let mut response = message.dispatch();
+
+     assert_eq!(
+        response.body_string().unwrap(),
+        //this needs improvement
+        "[\"test_user01\",\"test_user02\"]"
+    );
+}
+
+#[test]
+fn get_users_in_channel_not_logged_in() {
+    let (client, _) = setup!();
+
+    let message = client
+        .post("/get_users_in_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        );
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap())
+    );
+}
+
+#[test]
+fn get_users_in_channel_group_does_not_exist() {
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/get_users_in_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        );
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::GroupDoesNotExist).unwrap())
+    );
+}
+
+#[test]
+fn get_users_in_channel_user_not_in_group() {
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+    client
+        .post("/add_channel_to_group")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/get_users_in_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        );
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::UserNotInGroup).unwrap())
+    );
+}
+
+#[test]
+fn get_users_in_channel_channel_doesnt_exist() {
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+
+    let message = client
+        .post("/get_users_in_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        );
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::ChannelDoesNotExist).unwrap())
+    );
+}
+
+#[test]
+fn get_users_in_channel_user_not_in_channel() {
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_group")
+        .header(ContentType::JSON)
+        .body("\"test_group01\"")
+        .dispatch();
+    client
+        .post("/add_channel_to_group")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/invite_user_to_group")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                    \"username\":\"test_user02\",
+                    \"group_name\":\"test_group01\"
+                }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/process_group_invite")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"group_name\":\"test_group01\",
+                \"response\":true
+                }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/get_users_in_channel")
+        .header(ContentType::JSON)
+        .body(
+            "{
+                \"channel_name\": \"test_channel01\",
+                \"group_name\": \"test_group01\"
+            }",
+        );
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::UserNotInChannel).unwrap())
+    );
+}
+
+#[test]
 fn add_friend_request_success() {
     let (client, _) = setup!();
 

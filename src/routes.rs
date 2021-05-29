@@ -993,7 +993,7 @@ pub fn add_friend_request(user: Json<&str>, mut cookies: Cookies, database: Data
     ok!()
 }
 
-#[post("/proccess_friend_request", data = "<process_friend_request>")]
+#[post("/process_friend_request", data = "<process_friend_request>")]
 pub fn process_friend_request(
     process_friend_request: Json<ProcessFriendRequest>,
     mut cookies: Cookies,

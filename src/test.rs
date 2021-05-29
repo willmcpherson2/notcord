@@ -5037,6 +5037,86 @@ fn add_friend_request_friendship_already_exists() {
 }
 
 #[test]
+fn get_friend_requests_success() {
+    let (client, _) = setup!();
+
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/signup")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+            }",
+        )
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user01\",   
+            \"password\":\"test_hash01\"
+        }",
+        )
+        .dispatch();
+    client
+        .post("/add_friend_request")
+        .header(ContentType::JSON)
+        .body("\"test_user02\"")
+        .dispatch();
+    client
+        .post("/login")
+        .header(ContentType::JSON)
+        .body(
+            "{
+            \"username\":\"test_user02\",   
+            \"password\":\"test_hash02\"
+        }",
+        )
+        .dispatch();
+
+    let message = client
+        .post("/get_friend_requests")
+        .header(ContentType::JSON);
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string().unwrap(),
+        //this needs improvement
+        "[\"test_user01\"]"
+    );
+}
+
+#[test]
+fn get_friend_requests_not_logged_in() {
+    let (client, _) = setup!();
+
+    let message = client
+        .post("/get_friend_requests")
+        .header(ContentType::JSON);
+
+    let mut response = message.dispatch();
+
+    assert_eq!(
+        response.body_string(),
+        Some(serde_json::to_string(&Err::NotLoggedIn).unwrap())
+    );
+}
+
+
+#[test]
 fn process_friend_request_accept() {
     let (client, _) = setup!();
     client
@@ -5162,6 +5242,7 @@ fn process_friend_request_deny() {
         );
 
     let mut response = message.dispatch();
+    
     assert_eq!(
         response.body_string(),
         Some(serde_json::to_string(&Ok::Ok).unwrap())

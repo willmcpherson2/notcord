@@ -1,22 +1,25 @@
 Product URL
 -----------
 
-    https://not-cord.herokuapp.com
+https://not-cord.herokuapp.com
 
 Github URLs
 ----------
 
-    https://github.com/willmcpherson2/notcord
-    https://github.com/willmcpherson2/notcord-buildpack
+https://github.com/willmcpherson2/notcord
+
+https://github.com/willmcpherson2/notcord-buildpack
 
 Building
 --------
 
 Install yarn, rustup and sqlite3:
 
-    https://classic.yarnpkg.com/en/docs/install
-    https://rustup.rs
-    https://sqlite.org/download.html
+https://classic.yarnpkg.com/en/docs/install
+
+https://rustup.rs
+
+https://sqlite.org/download.html
 
 Run the backend:
 
@@ -59,8 +62,8 @@ If the local and remote branches are identical, this has no effect.
 
 The build script that is used to install dependencies can be found here:
 
-    https://github.com/willmcpherson2/notcord-buildpack/blob/master/bin/compile
+https://github.com/willmcpherson2/notcord-buildpack/blob/master/bin/compile
 
 The exact command used to run the server can be found here:
 
-    https://github.com/willmcpherson2/notcord/blob/main/Procfile
+https://github.com/willmcpherson2/notcord/blob/main/Procfile

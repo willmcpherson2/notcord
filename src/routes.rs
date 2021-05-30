@@ -1104,6 +1104,8 @@ pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Datab
         .unwrap();
 
         execute!(database, "DELETE FROM channels WHERE ROWID=?1", &channel_id);
+        execute!(database, "DELETE FROM friendships WHERE channel_id=?1",&channel_id);
+        execute!(database, "DELETE FROM messages WHERE channel_id=?1",&channel_id);
     } else if friendship2_exists {
         let channel_id: i64 = query_row!(
             database,
@@ -1114,6 +1116,8 @@ pub fn delete_friendship(user: Json<&str>, mut cookies: Cookies, database: Datab
         .unwrap();
 
         execute!(database, "DELETE FROM channels WHERE ROWID=?1", &channel_id);
+        execute!(database, "DELETE FROM friendships WHERE channel_id=?1",&channel_id);
+        execute!(database, "DELETE FROM messages WHERE channel_id=?1",&channel_id);
     }
     ok!()
 }

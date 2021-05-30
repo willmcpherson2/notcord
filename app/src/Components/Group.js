@@ -26,6 +26,7 @@ export default class Group extends Component {
       inviteShow: false,
       channelShow: false,
       settingsShow: false,
+      groupShow: false,
       messages: [],
       currentMessage: '',
       currentChannel: '',
@@ -116,6 +117,7 @@ export default class Group extends Component {
     this.currentUser = await this.getUsername();
     this.isAdmin = await this.isGroupAdmin();
     this.getUserAvatars();
+    this.renderUsers();
   }
 
   //This is used every single time the props 'groupName' is updated, so whent the group changes
@@ -325,6 +327,24 @@ export default class Group extends Component {
     }
 
   }
+
+  renderUsersGroupPermission() {
+    try {
+      return (
+        this.state.users.map((val, key) => {
+          return (
+            <Form.Check key={key} id={val} type="checkbox" label={val} defaultChecked />
+          )
+        }
+        )
+      )
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+
   async renderUsers() {
     const data = await fetch(process.env.REACT_APP_API_URL + '/get_users_in_group', {
       method: 'POST',
@@ -337,6 +357,7 @@ export default class Group extends Component {
     })
     const users = await data.json()
     this.setState({ users: [...users] })
+    console.log(this.state.users)
   }
   handleNameChange = (e) => {
     this.setState({ name: e.target.value })
@@ -389,6 +410,32 @@ export default class Group extends Component {
       }
     });
   }
+
+  saveGroupPermissions = async () => {
+    this.state.users.forEach(async user => {
+        //And this will remove them. 
+        // TODO: Backend should have a route that is 'isAdmin'
+      if (!document.getElementById(user).checked) {
+        const data = await fetch(process.env.REACT_APP_API_URL + '/remove_user_from_group', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: user,
+            group_name: this.props.groupName
+          })
+        })
+        const users = await data.json()
+        console.log(user + " " + users)
+        this.setState({ groupShow: false })
+      }
+    });
+  }
+
+
   deleteChannel = async () => {
     if (this.state.channels.length > 1) {
       console.log(this.state.channels.length)
@@ -674,6 +721,24 @@ export default class Group extends Component {
           </Modal.Body>
         </Modal>
 
+        {/**Group Settings */}
+        <Modal show={this.state.groupShow} onHide={() => { this.setState({ groupShow: false, showAlert: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Group Settings</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+
+            <Form>
+              <Form.Group>
+                <Form.Label>Allow:</Form.Label>
+                {this.renderUsersGroupPermission()}
+              </Form.Group>
+              <Button onClick={this.saveGroupPermissions}>Save Permissions</Button>
+            </Form>
+
+          </Modal.Body>
+        </Modal>
+
         {/**Create New Channel */}
         <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
           <Modal.Header closeButton>
@@ -753,7 +818,7 @@ export default class Group extends Component {
               overlay={<Tooltip>Invite User to Group</Tooltip>}>
               <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
             </OverlayTrigger>
-
+            <button className="invite" onClick={() => { this.setState({ groupShow: true }) }}>Group Settings</button>
           </div>
 
 

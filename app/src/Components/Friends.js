@@ -17,13 +17,13 @@ export default class Friends extends Component {
       showAlert: false,
       alertMessage: '',
       inviteShow: false,
-      friend: null,
+      friend: '',
       requestsShow: false,
       requests: [],
       friends: [],
       messages: [],
-      currentFriend: null,
-      currentMessage: null,
+      currentFriend: '',
+      currentMessage: '',
       inVoiceChat: false,
       voiceStream: null,
       voicePeers: {},
@@ -159,7 +159,6 @@ export default class Friends extends Component {
     })
     const friends = await data.json();
     this.setState({ friends: friends })
-    console.log(this.state.friends)
   }
 
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
@@ -407,7 +406,7 @@ export default class Friends extends Component {
     });
   }
 
-  removeFriend = () => {
+  removeFriend = async () => {
     //This invites users
     const data = await fetch(process.env.REACT_APP_API_URL + '/delete_friendship', {
       method: 'POST',
@@ -420,6 +419,7 @@ export default class Friends extends Component {
     })
     const invites = await data.json()
     if (invites === "Ok") {
+      this.getFriends();
       this.setState({
         alertMessage: "User " + this.state.currentFriend + " Removed as Friend",
         showAlert: true,

@@ -625,174 +625,177 @@ export default class Group extends Component {
       const urlCreator = window.URL || window.webkitURL;
       const url = urlCreator.createObjectURL(image);
       this.state.userAvatars[index] = url;
-      
+
     }
-}
+  }
 
-renderUserAvatars() {
-  return (
-    Object.entries(this.state.userAvatars).map(([key, value]) => {
+  renderUserAvatars() {
+    // FIXME: User when leaves does not get removed
+    if (this.state.userAvatars > 0) {
+      return (
+        Object.entries(this.state.userAvatars).map(([key, value]) => {
+          return (
+            <div key={key}><img id="avatar" width="32" height="32" alt="Avatar" src={value}></img>
+            </div>
+          )
+        })
+      )
+    }
+
+  }
+
+
+  render() {
     return (
-      <div key={key}><img id="avatar" width="32" height="32" alt="Avatar" src={value}></img>
-      </div>
-    )
-  })
-  )
-  
-}
+      <div className="group">
+        <audio className="audio-element">
+          <source src={join}></source>
+        </audio>
+        <audio className="audio-element-leave">
+          <source src={leave}></source>
+        </audio>
+        {/**NAVIGATION BAR */}
 
+        {/**Change Channel Settings */}
+        <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false, showAlert: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Channel Settings</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
 
-render() {
-  return (
-    <div className="group">
-      <audio className="audio-element">
-        <source src={join}></source>
-      </audio>
-      <audio className="audio-element-leave">
-        <source src={leave}></source>
-      </audio>
-      {/**NAVIGATION BAR */}
+            <Form>
+              <Form.Group>
+                <Form.Label>Allow:</Form.Label>
+                {this.renderUsersPermission()}
+              </Form.Group>
+              <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={() => this.setState({ deleteChannelShow: true })}>Delete Channel</Button>
+            </Form>
 
-      {/**Change Channel Settings */}
-      <Modal show={this.state.settingsShow} onHide={() => { this.setState({ settingsShow: false, showAlert: false }) }}>
-        <Modal.Header closeButton>
-          <Modal.Title>Channel Settings</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+          </Modal.Body>
+        </Modal>
 
-          <Form>
-            <Form.Group>
-              <Form.Label>Allow:</Form.Label>
-              {this.renderUsersPermission()}
-            </Form.Group>
-            <Button onClick={this.savePermissions}>Save Permissions</Button><Button variant="danger" onClick={() => this.setState({ deleteChannelShow: true })}>Delete Channel</Button>
-          </Form>
+        {/**Create New Channel */}
+        <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Create New Channel</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
 
-        </Modal.Body>
-      </Modal>
+            <Form>
+              <Form.Group>
+                <Form.Label>Channel Name</Form.Label>
+                <Form.Control type="text" onChange={this.handleNameChange} />
+              </Form.Group>
+              <Button onClick={this.createChannel}>Create Channel</Button>
+            </Form>
 
-      {/**Create New Channel */}
-      <Modal show={this.state.channelShow} onHide={() => { this.setState({ channelShow: false, showAlert: false }) }}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New Channel</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+          </Modal.Body>
+        </Modal>
 
-          <Form>
-            <Form.Group>
-              <Form.Label>Channel Name</Form.Label>
-              <Form.Control type="text" onChange={this.handleNameChange} />
-            </Form.Group>
-            <Button onClick={this.createChannel}>Create Channel</Button>
-          </Form>
+        {/**Invite people to group */}
+        <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Invite People</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
 
-        </Modal.Body>
-      </Modal>
+            <Form>
+              <Form.Group>
+                <Form.Label>Invite by Username (Case Sensitive)</Form.Label>
+                <Form.Control type="text" onChange={this.handleInviteChange} />
+              </Form.Group>
+              <Button onClick={this.inviteUser}>Invite User</Button>
+            </Form>
 
-      {/**Invite people to group */}
-      <Modal show={this.state.inviteShow} onHide={() => { this.setState({ inviteShow: false, showAlert: false }) }}>
-        <Modal.Header closeButton>
-          <Modal.Title>Invite People</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+          </Modal.Body>
+        </Modal>
 
-          <Form>
-            <Form.Group>
-              <Form.Label>Invite by Username (Case Sensitive)</Form.Label>
-              <Form.Control type="text" onChange={this.handleInviteChange} />
-            </Form.Group>
-            <Button onClick={this.inviteUser}>Invite User</Button>
-          </Form>
-
-        </Modal.Body>
-      </Modal>
-
-      {/**Delete Channel Confirm */}
-      <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false, showAlert: false }) }}>
-        <Modal.Header closeButton>
-          <Modal.Title>Delete Channel</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
+        {/**Delete Channel Confirm */}
+        <Modal show={this.state.deleteChannelShow} onHide={() => { this.setState({ deleteChannelShow: false, showAlert: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete Channel</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className={this.state.showAlert ? 'justify-content-md-center' : 'noDisplay'}>{this.alert()}</div>
             Are you sure you want to delete this channel? This action is unreversable.
           </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Footer>
+            <Button variant="danger" onClick={this.deleteChannel}>Delete Channel</Button>
+          </Modal.Footer>
+        </Modal>
 
-      {/**Leave Group Confirm */}
-      <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false, showAlert: false }) }}>
-        <Modal.Header closeButton>
-          <Modal.Title>Leave Group</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to leave this group? This action is unreversable. You will need to be invited again to rejoin.
+        {/**Leave Group Confirm */}
+        <Modal show={this.state.leaveGroupShow} onHide={() => { this.setState({ leaveGroupShow: false, showAlert: false }) }}>
+          <Modal.Header closeButton>
+            <Modal.Title>Leave Group</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to leave this group? This action is unreversable. You will need to be invited again to rejoin.
           </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={this.leaveGroup}>Leave Group</Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Footer>
+            <Button variant="danger" onClick={this.leaveGroup}>Leave Group</Button>
+          </Modal.Footer>
+        </Modal>
 
-      <div className="navigation">
-        <div className="heading">
-          <OverlayTrigger
-            placement='bottom'
-            delay={{ show: 1000, hide: 0 }}
-            overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
-            <h3 className="groupName">{this.props.groupName}</h3>
-          </OverlayTrigger>
+        <div className="navigation">
+          <div className="heading">
+            <OverlayTrigger
+              placement='bottom'
+              delay={{ show: 1000, hide: 0 }}
+              overlay={<Tooltip>{this.props.groupName}</Tooltip>}>
+              <h3 className="groupName">{this.props.groupName}</h3>
+            </OverlayTrigger>
 
-          <OverlayTrigger
-            placement='right'
-            delay={{ show: 500, hide: 0 }}
-            overlay={<Tooltip>Invite User to Group</Tooltip>}>
-            <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
-          </OverlayTrigger>
+            <OverlayTrigger
+              placement='right'
+              delay={{ show: 500, hide: 0 }}
+              overlay={<Tooltip>Invite User to Group</Tooltip>}>
+              <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
+            </OverlayTrigger>
+
+          </div>
+
+
+
+          {this.renderChannels()}
+          <div className="extras">
+            <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
+            <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
+          </div>
 
         </div>
 
+        <div className="messageArea">
+          <div className="infoBox">
+            <div className="info"><p>{this.state.currentChannel}</p></div>
+            <div>{this.renderUserAvatars()}</div>
+            <div className="callButton">
+              <Button variant="success" className={this.state.inVoiceChat ? "noDisplay" : ""} onClick={this.joinVoice}>Join Voice Call</Button>
+              <Button variant="danger" className={this.state.inVoiceChat ? "" : "noDisplay"} onClick={this.leaveVoice}>Leave Call</Button>
+            </div>
 
 
-        {this.renderChannels()}
-        <div className="extras">
-          <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
-          <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
-        </div>
+          </div>
+          <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
+          <div className="messageBox">
+            <Form onSubmit={this.sendMessage}>
+              <Form.Row>
+                <Col>
+                  <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                </Col>
+                <Col md="auto">
+                  <Button varient="primary" type="submit">Send Message</Button>
+                </Col>
+              </Form.Row>
 
-      </div>
-
-      <div className="messageArea">
-        <div className="infoBox">
-          <div className="info"><p>{this.state.currentChannel}</p></div>
-          <div>{this.renderUserAvatars()}</div>
-          <div className="callButton">
-            <Button variant="success" className={this.state.inVoiceChat ? "noDisplay" : ""} onClick={this.joinVoice}>Join Voice Call</Button>
-            <Button variant="danger" className={this.state.inVoiceChat ? "" : "noDisplay"} onClick={this.leaveVoice}>Leave Call</Button>
+            </Form>
           </div>
 
 
         </div>
-        <div className="messages" ref={(div) => { this.messageList = div; }}>{this.renderItems()}</div>
-        <div className="messageBox">
-          <Form onSubmit={this.sendMessage}>
-            <Form.Row>
-              <Col>
-                <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
-              </Col>
-              <Col md="auto">
-                <Button varient="primary" type="submit">Send Message</Button>
-              </Col>
-            </Form.Row>
-
-          </Form>
-        </div>
-
 
       </div>
-
-    </div>
-  );
-}
+    );
+  }
 }

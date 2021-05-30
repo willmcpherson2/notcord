@@ -1,5 +1,5 @@
 import { React, Component } from 'react';
-import { Button, Container, Row, Modal, Form, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Button, Container, Row, Modal, Form, Alert, OverlayTrigger, Tooltip, Col } from 'react-bootstrap';
 import { PlusIcon } from '@primer/octicons-react';
 import '../App.css'
 export default class Friends extends Component {
@@ -14,6 +14,9 @@ export default class Friends extends Component {
       requestsShow: false,
       requests: [],
       friends: [],
+      messages: [],
+      currentFriend: null,
+      currentMessage: null,
     }
   }
 
@@ -25,7 +28,7 @@ export default class Friends extends Component {
   async getRequests() {
     //This gets the invitations
     // FIXME: Get friend requests
-    const data = await fetch(process.env.REACT_APP_API_URL + '/get_invites', {
+    const data = await fetch(process.env.REACT_APP_API_URL + '/get_friend_requests', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -35,6 +38,7 @@ export default class Friends extends Component {
     })
     const invites = await data.json()
     this.setState({ requests: invites })
+    console.log(this.state.requests)
   }
 
   alert() {
@@ -92,7 +96,7 @@ export default class Friends extends Component {
     })
     const accept = await data.json();
     if (accept === "Ok") {
-      this.getInvites()
+      //this.getInvites()
       const message = response ? "Accepted" : "Declined"
       this.setState({
         alertMessage: "Invitation to Group " + name.toString() + " " + message,
@@ -129,7 +133,8 @@ export default class Friends extends Component {
       credentials: 'include',
     })
     const friends = await data.json();
-    await this.setState({ friends: [...friends] })
+    this.setState({ friends: friends })
+    console.log(this.state.friends)
   }
 
   //Renders the channels to be mapped out to individual buttons using rows and buttons.... this should probably not be using Rows due to some weird bugs
@@ -139,11 +144,11 @@ export default class Friends extends Component {
         return (
           <div key={key}>
             <button
-              className={this.state.currentChannel === val ? 'channelBar selected' : 'channelBar'}
+              className={this.state.currentFriend === val ? 'channelBar selected' : 'channelBar'}
               onClick={() => {
-                this.setState({ currentChannel: val },
+                this.setState({ currentFriend: val },
                   () => this.renderMessages(val))
-              }}># {val}</button>
+              }}>{val}</button>
 
             {/*<button className="channelOverlay" onClick={() => {
               this.setState({ settingsShow: true, currentChannel: val }, () => {
@@ -156,6 +161,78 @@ export default class Friends extends Component {
         )
       })
     )
+  }
+
+  async renderMessages(friend) {
+    try {
+      const data = await fetch(process.env.REACT_APP_API_URL + '/get_friend_messages', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(friend)
+      })
+      const messages = await data.json()
+      this.setState({ messages: messages })
+      console.log(messages + " and state: " + this.state.messages)
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  renderItems() {
+    try {
+      return (
+        this.state.messages.map((val, key) => {
+          const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+          ];
+          let time = new Date(val.time + " UTC");
+          let date = time.getDate() + " " + monthNames[time.getMonth()] + " " + time.getFullYear() + " at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          let currentDate = new Date();
+          if (currentDate.getDate() === time.getDate()) {
+            date = "Today at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          } else if (currentDate.getDate() === time.getDate() + 1 || (currentDate.getDate() != 1 && time.getDate() === 1)) {
+            date = "Yesterday at " + time.getHours() + ":" + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes()
+          }
+          return (
+            // TODO: Fix this to make it look good lol
+            <div key={key}>
+              <p className={this.currentUser === val.username ? "messageTitle currentUser" : "messageTitle"}>{val.username}<span>{date}</span></p>
+              <p className="messageContent">{val.message}</p>
+            </div>
+
+          )
+        })
+      )
+    } catch (error) {
+    }
+
+  }
+
+  sendMessage = async (e) => {
+    e.preventDefault();
+    await fetch(process.env.REACT_APP_API_URL + '/send_friend_message', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        friend: this.state.currentFriend,
+        message: this.state.currentMessage
+      })
+    })
+    this.renderMessages(this.state.currentFriend)
+    this.setState({ currentMessage: '' })
+  }
+
+  handleMessageChange = (e) => {
+    this.setState({ currentMessage: e.target.value })
+    console.log(this.state.currentFriend)
   }
 
   render() {
@@ -208,6 +285,7 @@ export default class Friends extends Component {
               <button className="invite" onClick={() => { this.setState({ inviteShow: true }) }}><PlusIcon size={24} /></button>
             </OverlayTrigger>
             <button className="invite" onClick={() => { this.setState({ requestsShow: true }) }}>Friend Requests</button>
+            {this.renderFriends()}
           </div>
           
 
@@ -229,7 +307,19 @@ export default class Friends extends Component {
 
 
 
+          <div className="messages" ref={(div) => { this.messageList = div; }}></div>
           <div className="messageBox">
+            <Form onSubmit={this.sendMessage}>
+              <Form.Row>
+                <Col>
+                  <Form.Control type="text" autoComplete="off" placeholder="message" value={this.state.currentMessage} onChange={this.handleMessageChange}></Form.Control>
+                </Col>
+                <Col md="auto">
+                  <Button varient="primary" type="submit">Send Message</Button>
+                </Col>
+              </Form.Row>
+
+            </Form>
           </div>
 
 

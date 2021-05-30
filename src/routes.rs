@@ -1144,7 +1144,7 @@ pub fn send_friend_message(
 
     let friend_id: i64 = query_row!(
         database,
-        "SELECT ROWID FROM user WHERE name=?1",
+        "SELECT ROWID FROM users WHERE username=?1",
         &friend_message.friend
     )
     .map_err(|_| Err::UserDoesNotExist)?;
@@ -1179,7 +1179,7 @@ pub fn get_friend_messages(
 
     let friend_id: i64 = query_row!(
         database,
-        "SELECT ROWID FROM user WHERE name=?1",
+        "SELECT ROWID FROM users WHERE username=?1",
         &friend.into_inner()
     )
     .map_err(|_| Err::UserDoesNotExist)?;

@@ -124,7 +124,7 @@ export default class Friends extends Component {
       //this.getInvites()
       const message = response ? "Accepted" : "Declined"
       this.setState({
-        alertMessage: "Invitation to Group " + name.toString() + " " + message,
+        alertMessage: "Friend invite from " + name.toString() + " " + message,
         showAlert: true,
         success: response,
       })

@@ -88,7 +88,7 @@ export default class Login extends Component {
         </Row>
         <Row>
           {/** TODO: Move this to an appropriate location. Make website not the webapp. URL: app.notcord.com, and privacy policy will be at notcord.com/privacy */}
-          <a href='http://localhost:3000/privacy.html' rel="noreferrer" target="_blank">Privacy Policy</a></Row>
+          <a href='../../privacy.html' rel="noreferrer" target="_blank">Privacy Policy</a></Row>
       </Container>
     );
   }

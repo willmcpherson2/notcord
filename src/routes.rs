@@ -1148,14 +1148,14 @@ pub fn send_friend_message(
 
     let friend_id: i64 = query_row!(
         database,
-        "SELECT ROWID FROM user WHERE name=?1",
+        "SELECT ROWID FROM users WHERE username=?1",
         &friend_message.friend
     )
     .map_err(|_| Err::UserDoesNotExist)?;
 
     let channel_id: i64 = query_row!(
         database,
-        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?2 AND user2_id=?1)",
         &user_id,
         &friend_id
     )
@@ -1183,14 +1183,14 @@ pub fn get_friend_messages(
 
     let friend_id: i64 = query_row!(
         database,
-        "SELECT ROWID FROM user WHERE name=?1",
+        "SELECT ROWID FROM users WHERE username=?1",
         &friend.into_inner()
     )
     .map_err(|_| Err::UserDoesNotExist)?;
 
     let channel_id: i64 = query_row!(
         database,
-        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?2 AND user2_id=?1)",
         &user_id,
         &friend_id
     )

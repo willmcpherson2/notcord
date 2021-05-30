@@ -127,6 +127,7 @@ export default class Group extends Component {
       //Fetches the channels and assigns them to the 'channels' array state.
       this.getChannels();
       if (this.state.currentChannel !== null) {
+        console.log(this.state.currentChannel)
         this.renderMessages(this.state.currentChannel);
       }
     }

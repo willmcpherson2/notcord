@@ -1151,7 +1151,7 @@ pub fn send_friend_message(
 
     let channel_id: i64 = query_row!(
         database,
-        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?2 AND user2_id=?1)",
         &user_id,
         &friend_id
     )
@@ -1186,7 +1186,7 @@ pub fn get_friend_messages(
 
     let channel_id: i64 = query_row!(
         database,
-        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?1 AND user2_id=?2)",
+        "SELECT channel_id FROM friendships WHERE (user1_id=?1 AND user2_id=?2) OR (user1_id=?2 AND user2_id=?1)",
         &user_id,
         &friend_id
     )

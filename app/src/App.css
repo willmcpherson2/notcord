@@ -319,6 +319,12 @@ div Sidebar {
   float: left;
 }
 
+.channels {
+  height: calc( 100vh - 200px);
+  overflow: auto;
+  overflow-x: hidden;
+}
+
 .groupName {
   padding: 10px;
   overflow: hidden;
@@ -372,9 +378,9 @@ div Sidebar {
 
 .channelOverlay {
   display: none;
-  position: absolute;
+  position: relative;
   z-index: 2;
-  margin: 12px 0 0 -50px;
+  margin: 0 0 0 -50px;
   border: none;
   background-color: transparent;
 }

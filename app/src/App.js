@@ -5,7 +5,7 @@ import Sidebar from './Components/Sidebar';
 import Signup from './Components/Signup'
 import Settings from './Components/Settings';
 import Group from './Components/Group';
-import Friends from './Components/Friends';
+import Friend from './Components/Friend';
 import './App.css';
 
 export default class App extends Component {
@@ -56,13 +56,13 @@ renderComponents() {
     switch (view) {
 
       case "dashboard":
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Friends setView={this.updateView} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Friend setView={this.updateView} groupName={this.state.group} /></Col></Row></Container>
       case "settings":
         return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Settings setView={this.updateView} /></Col></Row></Container>
       case "group":
         return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Group groupName={this.state.group} /></Col></Row></Container>
       default:
-        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Friends setView={this.updateView} /></Col></Row></Container>
+        return <Container fluid><Row><Col md="auto" className="sidebarPadding"><Sidebar setView={this.updateView} group={this.group} /></Col><Col className="noRight"><Friend setView={this.updateView} groupName={this.state.group} /></Col></Row></Container>
     }
 
   } else {

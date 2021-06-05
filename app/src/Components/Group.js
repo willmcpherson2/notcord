@@ -14,8 +14,6 @@ let peerUpdate = null;
 let currentUser = null;
 let isAdmin = false;
 
-// TODO: Convert to React-Hooks
-
 export default class Group extends Component {
   constructor(props) {
     super(props);
@@ -824,7 +822,9 @@ export default class Group extends Component {
 
 
 
-          {this.renderChannels()}
+          <div className="channels">
+            {this.renderChannels()}
+          </div>
           <div className="extras">
             <Button onClick={() => { this.setState({ channelShow: true }) }} variant="light">New Channel</Button>
             <Button className="leaveGroup" onClick={() => { this.setState({ leaveGroupShow: true }) }} variant="danger">Leave Group</Button>
